@@ -1,13 +1,13 @@
-Installation of LiDAR tools on Ubuntu 14.04
+# Installation of LiDAR tools on Ubuntu 14.04
 
 Most of the open-source LiDAR tools available are not available as pre-built packages and must be compiled from source.  Start in a working build directory (e.g., ~/build). The instructions for each package assume you start in this working directory.
 
-DEPENDENCIES
+# Dependencies
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
     $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
     $ sudo apt-get install git cmake libboost-all-dev libgdal0-dev
 
-STANDARD CMAKE INSTRUCTIONS
+# Running CMake
 Many of the programs use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory
     $ cd "projdir"      # "projdir" is the project directory
     $ mkdir build
@@ -16,24 +16,24 @@ Many of the programs use cmake which works in a standard fashion across platform
     $ make
     $ sudo make install
 
-PDAL
+# PDAL
 
 
 
-LASzip:
+# LASzip:
     1) Clone repository
         $ git clone https://github.com/LASzip/LASzip.git
     2) Run CMake steps as above
 
 
-libLAS:
+# libLAS:
     # Dependencies: LASzip
     $ git clone https://github.com/libLAS/libLAS.git
     $ cd libLAS
     # Run CMake steps
     
 
-SPDLib:
+# SPDLib:
     # Installing from conda
     # Download miniconda and follow installation from here: http://conda.pydata.org/miniconda.html
     $ sudo conda install -c spdlib  spd3dpointsviewer tuiview
@@ -54,7 +54,7 @@ SPDLib:
     # Then run ldconfig to update it
     $ ldconfig
 
-SPDPointsViewer
+# SPDPointsViewer
     1)
     $ hg clone https://bitbucket.org/petebunting/spd-3d-points-viewer spdpointsviewer
     $ cd spdpointsviewer
@@ -64,7 +64,7 @@ SPDPointsViewer
 
 
 
-LiDAR Viewer
+# LiDAR Viewer
     http://idav.ucdavis.edu/~okreylos/ResDev/LiDAR/
     1) Download and run Ubuntu install script for Vrui: http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/Download.html
         Script creates two folders ~/src/Vrui-X.X and ~/Vrui-X.X
