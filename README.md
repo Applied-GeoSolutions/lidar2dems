@@ -5,27 +5,29 @@ Most of the open-source LiDAR tools available are not available as pre-built pac
 # Dependencies
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
 ~~~~
-    $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-    $ sudo apt-get install git cmake libboost-all-dev libgdal0-dev
+$ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+$ sudo apt-get install git cmake libboost-all-dev libgdal0-dev
 ~~~~
 
 # Running CMake
 Many of the programs use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory
-    $ cd "projdir"      # "projdir" is the project directory
-    $ mkdir build
-    $ cd build
-    $ cmake -G "Unix Makefiles" ../
-    $ make
-    $ sudo make install
+~~~~
+$ cd "projdir"      # "projdir" is the project directory
+$ mkdir build
+$ cd build
+$ cmake -G "Unix Makefiles" ../
+$ make
+$ sudo make install
+~~~~
 
 # PDAL
 
 
 
 # LASzip:
-    1. Clone repository
-        $ git clone https://github.com/LASzip/LASzip.git
-    2. Run CMake steps as above
+1. Clone repository
+`$ git clone https://github.com/LASzip/LASzip.git`
+2. Run CMake steps as above
 
 
 # libLAS:
