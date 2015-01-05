@@ -7,51 +7,117 @@ This project is a collection of information and possibly source code for LiDAR u
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git cmake libboost-all-dev libgdal0-dev
+$ sudo apt-get install git svn cmake libboost-all-dev libgdal0-dev
 ~~~~
 
 ## Running CMake
 Many of the programs use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory
-~~~~
+```
 $ cd "projdir"      # "projdir" is the project directory
 $ mkdir build
 $ cd build
 $ cmake -G "Unix Makefiles" ../
 $ make
 $ sudo make install
-~~~~
+```
 
 # Recommended LiDAR Software
-## LASzip:
+
+## LASzip
 LASzip is used by many other LiDAR software packages to support compressed LAS files.
+
 1. Clone repository
-2. *Run CMake steps as above*
-> `$ git clone https://github.com/LASzip/LASzip.git`
+
+        $ git clone https://github.com/LASzip/LASzip.git
+
+2. Run CMake steps as above
+
 
 ## PDAL
-PDAL has excellent documentation:
-> Main Documentation: http://www.pdal.io/docs.html
-> Installation: http://www.pdal.io/compilation/unix.html
-1. Clone repository
-> `$ git clone git@github.com:PDAL/PDAL.git pdal`
-2. Run CMake as above
-> If there is an error when calling cmake about not finding LASzip.hpp specify the include directory when calling cmake:
-> `$ cmake -G "Unix Makefiles" -DLASZIP_INCLUDE_DIR=/usr/local/include`
+PDAL is the newest LiDAR library for conversion and filtering. It is under very active development and has features particularly well suited to batch processing. There is also excellent documentation: http://www.pdal.io/docs.html
 
-In order to use the PCL pipeline within PDAL, including visualization, a separate branch of PCL must be installed.  
+First, in order to use the PCL pipeline within PDAL, including visualization, a separate branch of PCL must be installed.  
+
 1. Make sure the normal PCL distribution is removed from your system
-> `sudo apt-get purge libpcl-all`
+
+        $ sudo apt-get purge libpcl-all
+
 2. Install dependencies
-> `sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev`
+
+        $ sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java
+
 3. Clone repository
-> `$ git clone https://github.com/chambbj/pcl.git`
-> `$ cd pcl`
-> `$ git checkout pipeline`
+    
+        $ git clone https://github.com/chambbj/pcl.git
+        $ cd pcl
+        $ git checkout pipeline
+
 4. Run CMake as above
+
+Then install PDAL:
+
+1. Clone repository
+
+        $ git clone git@github.com:PDAL/PDAL.git pdal
+
+2. Run CMake as above except when running "cmake":
+        
+        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON
+
+3. If an error occurs during cmake about not finding LASzip.hpp specify LASzip include directory
+
+        $ cmake -G "Unix Makefiles" -DBUILD_PLUGIN_PCL=ON -DLASZIP_INCLUDE_DIR=/usr/local/include
+
+
+## libLAS:
+libLAS is an older library, which is to eventually be replaced with PDAL. However, some other software (e.g., MCC-LiDAR) depends on libLAS. 
+
+1. Install LASzip
+
+2. Clone repository
+
+        $ git clone https://github.com/libLAS/libLAS.git
+
+3. Run CMake steps as above
 
 
 ## MCC-LiDAR
-MCC-LiDAR consists of a command line utility for performing classification using the MCC algorithm, which is particularly well suited for classifying ground points amidst canopy cover. MCC is the classification algorithm endorsed by the Forest Service
+MCC-LiDAR consists of a command line utility for performing classification using the MCC algorithm, which is particularly well suited for classifying ground points amidst canopy cover. It does not classify the type of vegetation (e.g., low, medium, high), but this may be added in the future.
+
+1. Clone repository
+
+        $ svn checkout svn://svn.code.sf.net/p/mcclidar/code/trunk mcclidar-code
+
+2. Run CMake steps as above
+
+### Using MCC-LiDAR
+Note that MCC-LiDAR is designed to replace all the classification codes in the input file.  It also requires setting some initial parameters, for which the guidelines can be used below as a starting point. For more detail on picking parameters see http://sourceforge.net/p/mcclidar/wiki/HowToRun/
+
+Scale (S): Find the average point density, pd, for all returns for your dataset. Calculate S, then vary up and down in 0.1 increments to find best results.
+
+            S = sqrt(1/pd)
+
+Curvature (C): Start with a curvature of 0.3 if the terrain is relatively flat, and increase for more varying terrain.
+
+On a test file of about 1 million points (~20MB), MCC-LiDAR took approximately 17 minutes to complete. If this were to scale linearly this is about 14.5 hours/GB or 618 days/TB.  MCC-LiDAR does not utilize multiple processors.
+
+# LAStools
+LAStools is a series of open-source utilities for working with LAS files such as lasinfo and las2ogr. It is not necessary, but lasinfo provides some useful info, and it will testing some of the other utilities (e.g., conversion) for speed against PDA>
+
+1. Clone and unzip repository
+
+        $ wget http://www.cs.unc.edu/~isenburg/lastools/download/LAStools.zip
+        $ unzip LAStools.zip
+
+2. Compile 
+    
+        $ cd LAStools 
+        $ make
+
+3. Install
+        # cd bin
+        $ sudo cp las2las las2las-old las2ogr las2txt las2txt-old lasblock lasindex lasinfo lasinfo-old lasmerge lasprecision laszip laszip-config laszippertest /usr/local/bin/
+
 
 # Other LiDAR Software
 There are some other LiDAR libraries which may have promise, but not widely used 
@@ -59,11 +125,6 @@ There are some other LiDAR libraries which may have promise, but not widely used
 ## Fusion
 Fusion is a Windows only GUI program that supports visualization and classification using the MCC algorithm. Because of the GUI nature it is not particularly well suited to batch processing. It also requires conversion of .las files to an image prior to loading of the .las file (which must be done to do classification). These extra steps also make the entire process slower.
 
-## libLAS:
-Depends on LASzip
-1. Clone repository
-    > `$ git clone https://github.com/libLAS/libLAS.git`
-2. Run CMake steps as above
     
 
 ## SPDLib:
@@ -77,7 +138,9 @@ SPDLib is apparently rich with features, including classification and visualizat
 
 ### Installing from source
 This is the start of compilation notes, however I could never get it finally running so they are incomplete.
+
 Requirements: LASzip and libLAS
+
 SPDLib:
     $ sudo apt-get install mercurial libgsl0-dev libcgal-dev
     $ hg clone https://bitbucket.org/petebunting/spdlib spdlib
@@ -98,17 +161,21 @@ SPDPointsViewer:
     # Run CMake steps
 
 ## LiDAR Viewer
-### Installation
-    http://idav.ucdavis.edu/~okreylos/ResDev/LiDAR/
-    1. Install dependencies
+
+See main page here: http://idav.ucdavis.edu/~okreylos/ResDev/LiDAR/ and documentation at http://wiki.cse.ucdavis.edu/keckcaves:lidarmanual
+
+1. Install dependencies
+
         $ sudo apt-get install ndvidia-current
-    2. Download and run Ubuntu install script for Vrui: http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/Download.html
-        Script creates two folders ~/src/Vrui-X.X and ~/Vrui-X.X
-    3. Download and untar LidarViewer: http://idav.ucdavis.edu/~okreylos/ResDev/LiDAR/ 
-        Follow instructions in README
-        Recommend following optional steps 4 and 6 to edit makefile: change INSTALLDIR to /usr/local
-    4. Online docs at http://wiki.cse.ucdavis.edu/keckcaves:lidarmanual
-### Use
+        # Download and run Ubuntu install script for Vrui (http://idav.ucdavis.edu/~okreylos/ResDev/Vrui/Download.html) 
+
+The Vrui download sript  will create two folders ~/src/Vrui-X.X and ~/Vrui-X.X
+
+2. Download and untar LidarViewer from above link and follow installation instructions in README
+
+3. Recommend following optional steps 4 and 6 to edit makefile: change INSTALLDIR to /usr/local
+
+### Using LiDAR Viewer
     1. Convert files to LIDAR format (.lidar)
         $ LidarPreprocessor fname.las -LIDAR -o fname
     2. Visualize
