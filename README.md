@@ -2,6 +2,7 @@
 
 This project is a collection of information and possibly source code for LiDAR utilities. The installation notes here are for Ubuntu 14.04.  Most of the open-source LiDAR tools available are not available as pre-built packages and must be compiled from source.  Start in a working build directory (e.g., ~/build). The instructions for each package assume you start in this working directory.
 
+# Installation Notes
 ## Dependencies
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
 ~~~~
@@ -20,11 +21,12 @@ $ make
 $ sudo make install
 ~~~~
 
+# Recommended LiDAR Software
 ## LASzip:
 LASzip is used by many other LiDAR software packages to support compressed LAS files.
 1. Clone repository
+2. *Run CMake steps as above*
 > `$ git clone https://github.com/LASzip/LASzip.git`
-2. Run CMake steps as above
 
 ## PDAL
 PDAL has excellent documentation:
@@ -51,13 +53,11 @@ In order to use the PCL pipeline within PDAL, including visualization, a separat
 ## MCC-LiDAR
 MCC-LiDAR consists of a command line utility for performing classification using the MCC algorithm, which is particularly well suited for classifying ground points amidst canopy cover. MCC is the classification algorithm endorsed by the Forest Service
 
+# Other LiDAR Software
+There are some other LiDAR libraries which may have promise, but not widely used 
 
 ## Fusion
 Fusion is a Windows only GUI program that supports visualization and classification using the MCC algorithm. Because of the GUI nature it is not particularly well suited to batch processing. It also requires conversion of .las files to an image prior to loading of the .las file (which must be done to do classification). These extra steps also make the entire process slower.
-
-
-# Other Libraries
-There are some other LiDAR libraries which may have promise, but not widely used 
 
 ## libLAS:
 Depends on LASzip
