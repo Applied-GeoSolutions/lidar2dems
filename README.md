@@ -2,6 +2,9 @@
 
 This project is a collection of information and possibly source code for LiDAR utilities. The installation notes here are for Ubuntu 14.04.  Most of the open-source LiDAR tools available are not available as pre-built packages and must be compiled from source.  Start in a working build directory (e.g., ~/build). The instructions for each package assume you start in this working directory.
 
+
+OpenTopography Tool Registry: http://opentopo.sdsc.edu/gridsphere/gridsphere?cid=tools
+
 # Installation Notes
 ## Dependencies
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
@@ -36,37 +39,24 @@ LASzip is used by many other LiDAR software packages to support compressed LAS f
 ## PDAL
 PDAL is the newest LiDAR library for conversion and filtering. It is under very active development and has features particularly well suited to batch processing. There is also excellent documentation: http://www.pdal.io/docs.html
 
-First, in order to use the PCL pipeline within PDAL, including visualization, a separate branch of PCL must be installed.  
+        $ sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libopenni2-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java
 
-1. Make sure the normal PCL distribution is removed from your system
+###Installation:
+1. Install dependencies
 
-        $ sudo apt-get purge libpcl-all
+        $ sudo apt-get install libpcl-all libpcl-dev-all
 
-2. Install dependencies
-
-        $ sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java
-
-3. Clone repository
-    
-        $ git clone https://github.com/chambbj/pcl.git
-        $ cd pcl
-        $ git checkout pipeline
-
-4. Run CMake as above
-
-Then install PDAL:
-
-1. Clone repository
+2. Clone repository
 
         $ git clone git@github.com:PDAL/PDAL.git pdal
 
-2. Run CMake as above except when running "cmake":
+3. Run CMake as above except when running "cmake":
         
         $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON
 
-3. If an error occurs during cmake about not finding LASzip.hpp specify LASzip include directory
+4. If an error occurs during cmake about not finding LASzip.hpp specify LASzip include directory
 
-        $ cmake -G "Unix Makefiles" -DBUILD_PLUGIN_PCL=ON -DLASZIP_INCLUDE_DIR=/usr/local/include
+        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DLASZIP_INCLUDE_DIR=/usr/local/include -DPCL_DIR=/usr/share/pcl-1.7
 
 
 ## libLAS:
