@@ -59,13 +59,9 @@ PDAL is the newest LiDAR library for conversion and filtering. It is under very 
 
         $ git clone git@github.com:PDAL/PDAL.git pdal
 
-3. Run CMake as above except when running "cmake":
+3. Run CMake as above except when running "cmake" give these parameters (the LASZIP may not be necessary but for some reason it was not found on test systems):
         
-        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON
-
-4. If an error occurs during cmake about not finding LASzip.hpp specify LASzip include directory
-
-        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DLASZIP_INCLUDE_DIR=/usr/local/include -DPCL_DIR=/usr/share/pcl-1.7
+        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DPCL_DIR=/usr/share/pcl-1.7 -DBUILD_PLUGIN_P2G=ON -DLASZIP_INCLUDE_DIR=/usr/local/include
 
 
 ## libLAS:
