@@ -35,6 +35,15 @@ LASzip is used by many other LiDAR software packages to support compressed LAS f
 
 2. Run CMake steps as above
 
+## Points2Grid
+Points2Grid is used by PDAL to create DEM's from point clouds using a local gridding method
+
+1. Clone repository
+
+    $ git clone git@github.com:CRREL/points2grid.git
+
+2. Run CMake steps as above
+
 
 ## PDAL
 PDAL is the newest LiDAR library for conversion and filtering. It is under very active development and has features particularly well suited to batch processing. There is also excellent documentation: http://www.pdal.io/docs.html
