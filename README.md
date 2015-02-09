@@ -51,9 +51,9 @@ PDAL is the newest LiDAR library for conversion and filtering. It is under very 
         $ sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libopenni2-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java
 
 ###Installation:
-1. Install dependencies
+1. Install PCL with the provided script
 
-        $ sudo apt-get install libpcl-all libpcl-dev-all
+        $ scripts/pcl.sh
 
 2. Clone repository
 
