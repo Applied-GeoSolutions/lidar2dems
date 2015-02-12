@@ -5,4 +5,4 @@ This project is a collection of information and possibly source code for LiDAR u
 
 OpenTopography Tool Registry: http://opentopo.sdsc.edu/gridsphere/gridsphere?cid=tools
 
-[Installation Notes](INSTALL.md)
+[Installation Notes](lidar/INSTALL.md)
