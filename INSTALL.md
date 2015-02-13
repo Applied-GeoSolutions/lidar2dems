@@ -1,11 +1,4 @@
-# LiDAR tools
-
-This project is a collection of information and possibly source code for LiDAR utilities. The installation notes here are for Ubuntu 14.04.  Most of the open-source LiDAR tools available are not available as pre-built packages and must be compiled from source.  Start in a working build directory (e.g., ~/build). The instructions for each package assume you start in this working directory.
-
-
-OpenTopography Tool Registry: http://opentopo.sdsc.edu/gridsphere/gridsphere?cid=tools
-
-# Installation Notes
+# LiDAR Tools Installation Notes
 ## Dependencies
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
 ~~~~
@@ -36,7 +29,7 @@ LASzip is used by many other LiDAR software packages to support compressed LAS f
 2. Run CMake steps as above
 
 ## Points2Grid
-Points2Grid is used by PDAL to create DEM's from point clouds using a local gridding method
+Points2Grid is used by PDAL to create DEM products from point clouds using a local gridding method
 
 1. Clone repository
 
@@ -61,7 +54,7 @@ PDAL is the newest LiDAR library for conversion and filtering. It is under very 
 
 3. Run CMake as above except when running "cmake" give these parameters (the LASZIP may not be necessary but for some reason it was not found on test systems):
         
-        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DPCL_DIR=/usr/share/pcl-1.7 -DBUILD_PLUGIN_P2G=ON -DLASZIP_INCLUDE_DIR=/usr/local/include
+        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DPCL_DIR=/usr/share/pcl-1.7 -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON -DLASZIP_INCLUDE_DIR=/usr/local/include
 
 
 ## libLAS:
