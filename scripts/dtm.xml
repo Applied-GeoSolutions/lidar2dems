@@ -1,0 +1,31 @@
+<!-- Calculates DTM (ground returns) -->
+<?xml version="1.0" encoding="utf-8"?>
+<Pipeline version="1.0">
+  <Writer type="writers.p2g">
+    <Option name="grid_dist_x">
+      1.0
+    </Option>
+    <Option name="grid_dist_y">
+      1.0
+    </Option>
+    <Option name="radius">
+      1.0
+    </Option>
+    <Option name="output_type">
+      idw 
+    </Option>
+    <Option name="output_format">
+      tif 
+    </Option>
+    <Filter type="filters.range">
+        <!--<Option name="filename">./ground_filter.json</Option>-->
+        <Option name="dimension">
+            Classification
+            <Options>
+                <Option name="equals">2</Option>
+            </Options>
+        </Option>
+        <Reader type="readers.las"></Reader>
+    </Filter>
+  </Writer>
+</Pipeline>

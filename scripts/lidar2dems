@@ -1,0 +1,18 @@
+#!/bin/bash
+
+FILENAME=$1
+BNAME=${FILENAME%.las}
+SRS=EPSG:23880
+
+# path to this script
+SPATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+echo "Generate DTM (using ground points)"
+time pdal pipeline -i $SPATH/dtm.xml --writers.p2g.filename=${BNAME}_DTM --readers.las.filename=$FILENAME --writers.p2g.spatialreference=$SRS
+
+echo "Generate DSM (using all points)"
+time pdal pipeline -i $SPATH/dsm.xml --writers.p2g.filename=${BNAME}_DSM --readers.las.filename=$FILENAME --writers.p2g.spatialreference=$SRS
+
+echo "Generate CHM"
+time $SPATH/make_chm.py ${BNAME}_DSM.max.tif ${BNAME}_DTM.idw.tif ${BNAME}_CHM.tif
+
