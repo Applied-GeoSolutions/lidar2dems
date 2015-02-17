@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Pipeline version="1.0">
+    <Writer type="writers.las">
+        <Option name="filename">2014_surtech_9752.las</Option>
+        <Filter type="filters.crop">
+            <Option name="bounds">
+                ([232000.00, 232999.99],[9752000.00, 9752999.99],[0, 100])
+            </Option>
+            <Filter type="filters.merge">
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141028/LAS/L53-1-141028a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141028/LAS/L54-1-141028a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141028/LAS/L55-1-141028a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141028/LAS/L56-1-141028a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141028/LAS/L57-1-141028a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L60-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L61-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L62-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L63-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L64-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L65-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L66-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+                <Reader type="readers.las">
+                    <Option name="filename">surtech_9752/141029/LAS/L67-1-141029a-S1-C1_r.las</Option>
+                </Reader>
+            </Filter>
+        </Filter>
+    </Writer>
+</Pipeline>
