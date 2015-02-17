@@ -1,0 +1,13 @@
+{
+    "pipeline":
+    {
+        "filters":
+        [
+            {
+                "name": "StatisticalOutlierRemoval",
+                "setMeanK": 8,
+                "setStddevMulThresh": 2.00
+            }
+        ]
+    }
+}
