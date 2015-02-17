@@ -1,4 +1,4 @@
-<!-- Calculates DTM (ground returns) -->
+<!-- Calculates DSM (all returns) -->
 <?xml version="1.0" encoding="utf-8"?>
 <Pipeline version="1.0">
   <Writer type="writers.p2g">
@@ -10,6 +10,9 @@
     </Option>
     <Option name="radius">
       0.70711 
+    </Option>
+    <Option name="output_type">
+      den 
     </Option>
     <Option name="output_type">
       max 
