@@ -20,6 +20,6 @@
     <Option name="output_format">
       tif 
     </Option>
-    <Reader type="readers.las"></Reader>
+      <Reader type="readers.las"></Reader>
   </Writer>
 </Pipeline>

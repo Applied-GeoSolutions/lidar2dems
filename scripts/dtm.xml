@@ -26,17 +26,17 @@
     <Option name="output_format">
       tif 
     </Option>
-    <Filter type="filters.pclblock">
-        <Option name="filename">outliers.json</Option>
-        <Filter type="filters.range">
-            <Option name="dimension">
-                Classification
-                <Options>
-                    <Option name="equals">2</Option>
-                </Options>
-            </Option>
-        <Reader type="readers.las"></Reader>
+<!--    <Filter type="filters.pclblock">
+        <Option name="filename">outliers.json</Option>-->
+            <Filter type="filters.range">
+                <Option name="dimension">
+                    Classification
+                    <Options>
+                        <Option name="equals">2</Option>
+                    </Options>
+                </Option>
+                <Reader type="readers.las"></Reader>
         </Filter>
-    </Filter>
+<!--    </Filter>-->
   </Writer>
 </Pipeline>
