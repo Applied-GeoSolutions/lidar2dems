@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Arguments: filename, EPSG code
+
 FILENAME=$1
 BNAME=${FILENAME%.las}
 SRS=EPSG:23880
