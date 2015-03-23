@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# this processes a directory tree of photos collected by SurTech along with lidar
+# for each file it assigns a footprint retrieved from a shapefile, then warps it into output directory
+
 import os
 import glob
 import numpy
