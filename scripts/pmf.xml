@@ -1,0 +1,12 @@
+<!-- Calculates DSM (all returns) -->
+<?xml version="1.0" encoding="utf-8"?>
+<Pipeline version="1.0">
+  <Writer type="writers.las">
+    <Filter type="filters.pclblock">
+      <Option name="filename">
+        pmf.json
+      </Option>
+      <Reader type="readers.las"></Reader>
+    </Filter>
+  </Writer>
+</Pipeline>
