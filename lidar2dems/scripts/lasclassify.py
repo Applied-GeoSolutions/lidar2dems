@@ -1,22 +1,27 @@
 #!/usr/bin/env python
 
+import os
 import argparse
-import gippy
-
-
-def create_chm(dtm, dsm):
-    """ Create CHM from a DTM and DSM """
-    dtm_img = gippy.GeoImage(dtm)
-    dsm_img = gippy.GeoImage(dsm)
-    imgout = gippy.GeoImage(fout, dtm_img)
-    imgout[0].Write(dsm_img[0].Read() - dtm_img[0].Read())
-    return imgout
+from datetime import datetime
 
 
 if __name__ == '__main__':
     dhf = argparse.ArgumentDefaultsHelpFormatter
 
     parser = argparse.ArgumentParser(description='Classify LAS file')
-    parser.add_argument('fname', help='LAS file to classify')
+    parser.add_argument('fnames', help='LAS file(s) to classify')
     parser.add_argument('-s', '--slope', help='Slope', default=1.0)
     parser.add_argument('-c', '--cellsize', help='Cell Size')
+
+    args = parser.parse_args()
+
+    print 'Processing %s las files' % len(args.fnames)
+
+    for fname in args.fnames:
+        start = datetime.now()
+        fout = os.path.splitext(fname)[0] + 'pg_s%s_c%s' % (args.slope, args.cellsize)
+        if not os.path.exists(fout):
+            cmd = "pdal ground -i %s --slope %s --cellSize %s --classify" % (fout, args.slope, args.cellsize)
+            print cmd
+            os.system(cmd)
+            print 'Completed in %s' % datetime.now() - start

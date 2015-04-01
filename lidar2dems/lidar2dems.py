@@ -120,6 +120,15 @@ def run_pipeline(xml):
     os.remove(xmlfile)
 
 
+def create_chm(dtm, dsm):
+    """ Create CHM from a DTM and DSM """
+    dtm_img = gippy.GeoImage(dtm)
+    dsm_img = gippy.GeoImage(dsm)
+    imgout = gippy.GeoImage(fout, dtm_img)
+    imgout[0].Write(dsm_img[0].Read() - dtm_img[0].Read())
+    return imgout
+
+
 def create_vrts(path):
     """ Create VRT for all these tiles / files """
     import re
