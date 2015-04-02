@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+"""
+This processes a series of DSM and DTM files to gap fill and create hillshaded versions
+"""
+
 import os
 import argparse
 import glob
-from lidar2dems import gap_fill, create_chm
+from l2d import gap_fill, create_chm
 
 
 if __name__ == "__main__":
