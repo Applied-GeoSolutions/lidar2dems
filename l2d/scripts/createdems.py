@@ -52,7 +52,7 @@ def main():
     parser.add_argument('--dsm', help='Create DSM (run for each provided radius)', nargs='*', default=[])
     parser.add_argument('--dtm', help='Create DTM (run for each provided radius)', nargs='*', default=[])
     parser.add_argument('--epsg', help='EPSG code to assign to DEM outputs')
-    parser.add_argument('--bounds', help='Bounds (xmin,xmax,ymin,ymax) of output files (VRTs)', default=None, nargs=4)
+    parser.add_argument('--bounds', help='Bounds (xmin ymin xmax ymax) of output files (VRTs)', default=None, nargs=4)
     parser.add_argument('--outdir', help='Output directory', default='./')
     args = parser.parse_args()
 
