@@ -6,7 +6,7 @@ import imp
 import glob
 import traceback
 
-__version__ = imp.load_source('lidar2dems.version', 'lidar2dems/version.py').__version__
+__version__ = imp.load_source('l2d.version', 'l2d/version.py').__version__
 
 scripts = []
 for f in glob.glob('l2d/scripts/*.py'):

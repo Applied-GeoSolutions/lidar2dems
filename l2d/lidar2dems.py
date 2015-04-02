@@ -44,9 +44,9 @@ def create_dsm(fname, radius, epsg, bounds=None, outliers=None, outdir=''):
 
     # add statistical outlier filter
     if outliers is not None:
-        fname = create_outlier_filter(thresh=outliers)
+        filtname = create_outlier_filter(thresh=outliers)
         fxml = etree.SubElement(xml[0], "Filter", type="filters.pclblock")
-        etree.SubElement(fxml, "Option", name="filename").text = fname
+        etree.SubElement(fxml, "Option", name="filename").text = filtname
         txml = fxml
     else:
         # if no filter, reader needs to be child of writer block
@@ -67,7 +67,7 @@ def create_dsm(fname, radius, epsg, bounds=None, outliers=None, outdir=''):
     return bname
 
 
-def create_dems(fname, dsmrad, dtmrad, epsg, bounds, outdir=''):
+def create_dems(fname, dsmrad, dtmrad, epsg, bounds=None, outdir=''):
     """ Create all DEMS from this output """
     for rad in dtmrad:
         create_dtm(fname, rad, epsg, bounds, outdir=outdir)
@@ -155,7 +155,7 @@ def create_vrts(path, bounds=None, overviews=False):
     fnames = glob.glob(os.path.join(path, '*.tif'))
     names = set(map(lambda x: pattern.match(x).groups()[0], fnames))
     for n in names:
-        fout = os.path.abspath(os.path.join(path, '../', '%s.vrt' % n))
+        fout = os.path.abspath(os.path.join(path, '%s.vrt' % n))
         files = glob.glob(os.path.abspath(os.path.join(path, '*%s.tif' % n)))
         create_vrt(files, fout, bounds, overviews)
 
@@ -165,13 +165,14 @@ def gap_fill(filenames, fout, interpolation='nearest'):
     from scipy.interpolate import griddata
 
     gippy.Options.SetVerbose(4)
-    print filenames
-    import pdb
-    pdb.set_trace()
 
     filenames = sorted(filenames)
     imgs = gippy.GeoImages(filenames)
     nodata = imgs[0][0].NoDataValue()
+
+    import pdb
+    pdb.set_trace()
+
     arr = imgs[0][0].Read()
 
     for i in range(1, imgs.size()):
