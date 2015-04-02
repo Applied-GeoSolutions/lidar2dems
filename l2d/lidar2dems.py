@@ -154,7 +154,9 @@ def create_vrts(path, bounds=None, overviews=False):
     pattern = re.compile('.*_(D[ST]M_.*).tif')
     fnames = glob.glob(os.path.join(path, '*.tif'))
     names = set(map(lambda x: pattern.match(x).groups()[0], fnames))
+    print path
     for n in names:
+        print n
         fout = os.path.abspath(os.path.join(path, '%s.vrt' % n))
         files = glob.glob(os.path.abspath(os.path.join(path, '*%s.tif' % n)))
         create_vrt(files, fout, bounds, overviews)
@@ -169,9 +171,6 @@ def gap_fill(filenames, fout, interpolation='nearest'):
     filenames = sorted(filenames)
     imgs = gippy.GeoImages(filenames)
     nodata = imgs[0][0].NoDataValue()
-
-    import pdb
-    pdb.set_trace()
 
     arr = imgs[0][0].Read()
 
