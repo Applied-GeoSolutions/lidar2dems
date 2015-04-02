@@ -14,6 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create DEMs from a LAS lidar file', formatter_class=dhf)
     parser.add_argument('fnames', help='Classified LAS file(s) to process', nargs='+')
     parser.add_argument('--epsg', help='EPSG code to assign to DEM outputs')
+    parser.add_argument('--bounds', help='Bounds (xmin,xmax,ymin,ymax) of output files (VRTs)', default=None, nargs=4)
     parser.add_argument('--dsm', help='Create DSM (run for each provided radius)', nargs='+', default=[])
     parser.add_argument('--dtm', help='Create DTM (run for each provided radius)', nargs='+', default=[])
     # parser.add_argument('--chm', help='Create CHM from DTM and DSM', default=False, action='store_true')

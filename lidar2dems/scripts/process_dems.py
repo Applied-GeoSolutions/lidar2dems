@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+import os
 import argparse
-from lidar2dems import gap_fill
+import glob
+from lidar2dems import gap_fill, create_chm
 
 
 if __name__ == "__main__":
@@ -9,12 +11,20 @@ if __name__ == "__main__":
 
     desc = 'Create final gap-filled DEMs from multiple DTM using different radius gridding'
     parser = argparse.ArgumentParser(description=desc, formatter_class=dhf)
-    parser.add_argument('fnames', help='DTM files to use', nargs='+')
-    parser.add_argument('--fout', help='Output filename', default='DEM.tif')
-    parser.add_argument('--interp', help='Interpolation method (nearest, linear, cubic)', default='nearest')
+    #parser.add_argument('fnames', help='DTM files to use', nargs='+')
+    #parser.add_argument('--fout', help='Output filename', default='DEM.tif')
     parser.add_argument('--outdir', help='Output directory', default='./')
+    parser.add_argument('--interp', help='Interpolation method (nearest, linear, cubic)', default='nearest')
+    #parser.add_argument('--bounds', help='Bounds (xmin xmax ymin ymax)', default=None, nargs=4)
     args = parser.parse_args()
 
-    # Create final
+    # gap fill DSM and DTM
+    dsm = gap_fill(glob.glob('DSM*max.vrt'), os.path.join(args.outdir, 'DSM.tif'), interpolation=args.interp)
+    dtm = gap_fill(glob.glob('DTM*idw.vrt'), os.path.join(args.outdir, 'DTM.tif'), interpolation=args.interp)
 
-    gap_fill(args.fnames, args.fout, interpolation=args.interp)
+    # create CHM
+    chm = create_chm(dtm, dsm, os.path.join(args.outdir, 'CHM.tif'))
+
+    # create hillshades
+    for f in [dsm, dtm, chm]:
+        cmd = 'gdaldem hillshade %s %s' % (f, os.path.splitext(f)[0] + '_hillshade.tif')

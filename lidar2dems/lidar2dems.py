@@ -120,16 +120,34 @@ def run_pipeline(xml):
     os.remove(xmlfile)
 
 
-def create_chm(dtm, dsm):
+def create_chm(dtm, dsm, chm):
     """ Create CHM from a DTM and DSM """
     dtm_img = gippy.GeoImage(dtm)
     dsm_img = gippy.GeoImage(dsm)
-    imgout = gippy.GeoImage(fout, dtm_img)
+    imgout = gippy.GeoImage(chm, dtm_img)
     imgout[0].Write(dsm_img[0].Read() - dtm_img[0].Read())
-    return imgout
+    return imgout.Filename()
 
 
-def create_vrts(path):
+def create_vrt(filenames, fout, bounds=None, overviews=False):
+    """ Create VRT called fout from filenames """
+    if os.path.exists(fout):
+        return
+    cmd = [
+        'gdalbuildvrt',
+        fout,
+    ]
+    cmd.extend(filenames)
+    if bounds is not None:
+        cmd.append('-te %s' % (' '.join(bounds)))
+    print 'Creating VRT %s' % fout
+    os.system(' '.join(cmd))
+    if overviews:
+        print 'Adding overviews'
+        os.system('gdaladdo -ro %s 2 4 8 16' % fout)
+
+
+def create_vrts(path, bounds=None, overviews=False):
     """ Create VRT for all these tiles / files """
     import re
     import glob
@@ -138,24 +156,18 @@ def create_vrts(path):
     names = set(map(lambda x: pattern.match(x).groups()[0], fnames))
     for n in names:
         fout = os.path.abspath(os.path.join(path, '../', '%s.vrt' % n))
-        if os.path.exists(fout):
-            continue
         files = glob.glob(os.path.abspath(os.path.join(path, '*%s.tif' % n)))
-        cmd = [
-            'gdalbuildvrt',
-            fout,
-        ]
-        cmd.extend(files)
-        print 'Creating VRT %s' % fout
-        os.system(' '.join(cmd))
-        print 'Adding overviews'
-        os.system('gdaladdo -ro %s 2 4 8 16' % fout)
-        # out = os.system(' '.join(cmd) + ' 2> /dev/null ')
+        create_vrt(files, fout, bounds, overviews)
 
 
 def gap_fill(filenames, fout, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
     from scipy.interpolate import griddata
+
+    gippy.Options.SetVerbose(4)
+    print filenames
+    import pdb
+    pdb.set_trace()
 
     filenames = sorted(filenames)
     imgs = gippy.GeoImages(filenames)
@@ -175,4 +187,4 @@ def gap_fill(filenames, fout, interpolation='nearest'):
     imgout = gippy.GeoImage(fout, imgs[0])
     imgout.SetNoData(nodata)
     imgout[0].Write(arr)
-    return imgout
+    return imgout.Filename()
