@@ -11,6 +11,7 @@ setup(
     description='Utilities for creating DEMs from lidar data',
     author='Matthew Hanson',
     author_email='matt.a.hanson@gmail.com',
-    packages=['lidar2dems'],
+    packages=['l2d'],
+    requirements=['gippy'],
 #    entry_points={'console_scripts': console_scripts}
 )
