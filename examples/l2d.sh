@@ -13,7 +13,7 @@ l2d_classify LAS/*0.las -s 1 -c 3 --outdir Classified_LAS
 
 # create dems
 #l2d_createdems ClassifiedLAS/*.las --dsm 0.56419 --dtm 0.56419 1.0 1.4142 2.0 2.5 3.0 --bounds $2 $3 $4 $5 --epsg $EPSG
-l2d_createdems ClassifiedLAS/*.las --dsm 0.56419 --dtm 0.56419 1.0 1.4142 2.0 2.5 3.0 --epsg $EPSG --outdir dems
+l2d_createdems ClassifiedLAS/*.las --dsm 0.56419 --dtm 0.56419 1.4142 2.5 3.0 --epsg $EPSG --outdir dems
 
 # process dems and write output to current directory
 l2d_processdems --indir dems
