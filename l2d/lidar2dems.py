@@ -74,7 +74,7 @@ def xml_add_readers(xml, filenames):
 
 def run_pipeline(xml):
     """ Run PDAL Pipeline with provided XML """
-    xml_print(xml)
+    # xml_print(xml)
 
     # write to temp file
     f, xmlfile = tempfile.mkstemp(suffix='.xml')
@@ -86,8 +86,8 @@ def run_pipeline(xml):
         'pipeline',
         '-i %s' % xmlfile,
     ]
-    #out = os.system(' '.join(cmd) + ' 2> /dev/null ')
-    out = os.system(' '.join(cmd))
+    out = os.system(' '.join(cmd) + ' 2> /dev/null ')
+    # out = os.system(' '.join(cmd))
     os.remove(xmlfile)
 
 
@@ -126,7 +126,7 @@ def create_dsm(filenames, radius, epsg, bounds=None, outliers=None, outdir=''):
     return bname
 
 
-def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outdir=''):
+def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outdir=''):
     """ Create all DEMS from this output """
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -134,7 +134,7 @@ def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outdir=''):
     for rad in dtmrad:
         create_dtm(filenames, rad, epsg, bounds, outdir=outdir)
     for rad in dsmrad:
-        create_dsm(filenames, rad, epsg, bounds, outliers=3.0, outdir=outdir)
+        create_dsm(filenames, rad, epsg, bounds, outliers=outliers, outdir=outdir)
 
 
 def create_chm(dtm, dsm, chm):
@@ -182,8 +182,8 @@ def create_vrts(path, bounds=None, overviews=False):
 def gap_fill(filenames, fout, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
     from scipy.interpolate import griddata
-
-    gippy.Options.SetVerbose(4)
+    if len(filenames) == 0:
+        raise Exception('No filenames provided!')
 
     filenames = sorted(filenames)
     imgs = gippy.GeoImages(filenames)
