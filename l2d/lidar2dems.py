@@ -10,7 +10,7 @@ import numpy
 
 
 def xml_base(fout, output, radius, epsg, bounds=None):
-    """ Create initial XML for PDAL pipeline """
+    """ Create initial XML for PDAL pipeline containing a Writer element """
     xml = etree.Element("Pipeline", version="1.0")
     etree.SubElement(xml, "Writer", type="writers.p2g")
     etree.SubElement(xml[0], "Option", name="grid_dist_x").text = "1.0"
@@ -41,7 +41,7 @@ def xml_add_outlier_filter(xml, meank=20, thresh=3.0):
     f, fname = tempfile.mkstemp(suffix='.json')
     os.write(f, json)
     os.close(f)
-    return xml_add_pclblock(xml, f)
+    return xml_add_pclblock(xml, fname)
 
 
 def xml_add_classification_filter(xml, classification, equality="equals"):
