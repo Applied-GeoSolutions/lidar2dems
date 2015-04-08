@@ -6,25 +6,9 @@ This processes a series of DSM and DTM files to gap fill and create hillshaded v
 
 import os
 import argparse
+import datetime
 import glob
 from l2d import gap_fill, create_chm
-
-
-def run(indir, outdir, interpolation):
-    """ Process series of DEMs from input directory and create final products in output directory """
-    # gap fill DSM and DTM
-    dsm_pattern = glob.glob(os.path.join(indir, 'DSM*max.vrt'))
-    dtm_pattern = glob.glob(os.path.join(indir, 'DTM*idw.vrt'))
-    dsm = gap_fill(dsm_pattern, os.path.join(outdir, 'DSM.tif'), interpolation=interpolation)
-    dtm = gap_fill(dtm_pattern, os.path.join(outdir, 'DTM.tif'), interpolation=interpolation)
-
-    # create CHM
-    chm = create_chm(dtm, dsm, os.path.join(outdir, 'CHM.tif'))
-
-    # create hillshades
-    for f in [dsm, dtm, chm]:
-        cmd = 'gdaldem hillshade %s %s' % (f, os.path.splitext(f)[0] + '_hillshade.tif')
-        os.system(cmd)
 
 
 def main():
@@ -37,7 +21,26 @@ def main():
     parser.add_argument('--interp', help='Interpolation method (nearest, linear, cubic)', default='nearest')
     args = parser.parse_args()
 
-    run(args.indir, args.outdir, args.interp)
+    start = datetime.now()
+    print 'Gap-filling and creating final DEMs'
+
+    # create gap-filled versions of DSMs
+    dsm_files = glob.glob(os.path.join(args.indir, 'DSM*max.vrt'))
+    dsm = gap_fill(dsm_files, os.path.join(args.outdir, 'DSM.tif'), interpolation='nearest')
+
+    # create gap-filled versions of DTMs
+    dtm_files = glob.glob(os.path.join(args.indir, 'DTM*idw.vrt'))
+    dtm = gap_fill(dtm_files, os.path.join(args.outdir, 'DTM.tif'), interpolation='nearest')
+
+    # create CHM
+    chm = create_chm(dtm, dsm, os.path.join(args.outdir, 'CHM.tif'))
+
+    # create hillshades
+    for f in [dsm, dtm, chm]:
+        cmd = 'gdaldem hillshade %s %s' % (f, os.path.splitext(f)[0] + '_hillshade.tif')
+        os.system(cmd)
+
+    print 'Processed in %s' % (datetime.now() - start)
 
 
 if __name__ == "__main__":

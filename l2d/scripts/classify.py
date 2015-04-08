@@ -9,24 +9,6 @@ import argparse
 from datetime import datetime
 
 
-def run(filenames, slope, cellsize, outdir='./'):
-    """ Run pdal ground on these files with provided arguments """
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    start0 = datetime.now()
-    print 'Classifying %s files' % len(filenames)
-    for i, f in enumerate(filenames):
-        start = datetime.now()
-        fout = os.path.join(outdir, os.path.basename(os.path.splitext(f)[0])) + '_pg_s%s_c%s.las' % (slope, cellsize)
-        if not os.path.exists(fout):
-            import pdb
-            pdb.set_trace()
-            cmd = "pdal ground -i %s -o %s --slope %s --cellSize %s --classify" % (f, fout, slope, cellsize)
-            os.system(cmd)
-            print 'Classified (%s of %s) %s in %s' % (i + 1, len(filenames), f, datetime.now() - start)
-    print 'Completed in %s' % (datetime.now() - start0)
-
-
 def main():
     dhf = argparse.ArgumentDefaultsHelpFormatter
 
@@ -38,7 +20,19 @@ def main():
 
     args = parser.parse_args()
 
-    run(args.fnames, args.slope, args.cellsize, args.outdir)
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
+    start0 = datetime.now()
+    print 'Classifying %s files' % len(args.filenames)
+    for i, f in enumerate(args.filenames):
+        start = datetime.now()
+        suffix = '_pg_s%s_c%s.las' % (args.slope, args.cellsize)
+        fout = os.path.join(args.outdir, os.path.basename(os.path.splitext(f)[0])) + suffix
+        if not os.path.exists(fout):
+            cmd = "pdal ground -i %s -o %s --slope %s --cellSize %s --classify" % (f, fout, args.slope, args.cellsize)
+            os.system(cmd)
+            print 'Classified (%s of %s) %s in %s' % (i + 1, len(args.filenames), f, datetime.now() - start)
+    print 'Completed in %s' % (datetime.now() - start0)
 
 
 if __name__ == '__main__':

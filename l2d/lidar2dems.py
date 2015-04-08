@@ -9,73 +9,7 @@ import gippy
 import numpy
 
 
-def create_dtm(fname, radius, epsg, bounds=None, outdir=''):
-    """ Create DTM from las file """
-    if outdir == '':
-        bname = '%s_DTM_r%s' % (os.path.splitext(fname)[0], radius)
-    else:
-        bname = os.path.join(os.path.abspath(outdir), '%s_DTM_r%s' % (os.path.basename(os.path.splitext(fname)[0]), radius))
-
-    xml = base_xml(bname, ['den', 'min', 'idw'], radius, epsg, bounds)
-
-    # add ground point filter
-    filterxml = etree.SubElement(xml[0], "Filter", type="filters.range")
-    tmpxml = etree.SubElement(filterxml, "Option", name="dimension")
-    tmpxml.text = "Classification"
-    tmpxml = etree.SubElement(tmpxml, "Options")
-    etree.SubElement(tmpxml, "Option", name="equals").text = "2"
-
-    # las reader
-    txml = etree.SubElement(filterxml, "Reader", type="readers.las")
-    etree.SubElement(txml, "Option", name="filename").text = fname
-
-    run_pipeline(xml)
-    return bname
-
-
-def create_dsm(fname, radius, epsg, bounds=None, outliers=None, outdir=''):
-    """ Create DSM from las file """
-    if outdir == '':
-        bname = '%s_DSM_r%s' % (os.path.splitext(fname)[0], radius)
-    else:
-        bname = os.path.join(os.path.abspath(outdir), '%s_DSM_r%s' % (os.path.basename(os.path.splitext(fname)[0]), radius))
-
-    xml = base_xml(bname, ['den', 'max'], radius, epsg, bounds)
-
-    # add statistical outlier filter
-    if outliers is not None:
-        filtname = create_outlier_filter(thresh=outliers)
-        fxml = etree.SubElement(xml[0], "Filter", type="filters.pclblock")
-        etree.SubElement(fxml, "Option", name="filename").text = filtname
-        txml = fxml
-    else:
-        # if no filter, reader needs to be child of writer block
-        txml = xml[0]
-
-    # range filter - don't include ground points
-    filterxml = etree.SubElement(txml, "Filter", type="filters.range")
-    tmpxml = etree.SubElement(filterxml, "Option", name="dimension")
-    tmpxml.text = "Classification"
-    tmpxml = etree.SubElement(tmpxml, "Options")
-    etree.SubElement(tmpxml, "Option", name="max").text = "1"
-
-    # las reader
-    txml = etree.SubElement(filterxml, "Reader", type="readers.las")
-    etree.SubElement(txml, "Option", name="filename").text = fname
-
-    run_pipeline(xml)
-    return bname
-
-
-def create_dems(fname, dsmrad, dtmrad, epsg, bounds=None, outdir=''):
-    """ Create all DEMS from this output """
-    for rad in dtmrad:
-        create_dtm(fname, rad, epsg, bounds, outdir=outdir)
-    for rad in dsmrad:
-        create_dsm(fname, rad, epsg, bounds, outliers=3.0, outdir=outdir)
-
-
-def base_xml(fout, output, radius, epsg, bounds=None):
+def xml_base(fout, output, radius, epsg, bounds=None):
     """ Create initial XML for PDAL pipeline """
     xml = etree.Element("Pipeline", version="1.0")
     etree.SubElement(xml, "Writer", type="writers.p2g")
@@ -92,19 +26,55 @@ def base_xml(fout, output, radius, epsg, bounds=None):
     return xml
 
 
-def create_outlier_filter(meank=20, thresh=3.0):
-    """ Create JSON file for performing outlier removal """
+def xml_add_pclblock(xml, pclblock):
+    """ Add pclblock Filter element by taking in filename of a JSON file """
+    _xml = etree.SubElement(xml, "Filter", type="filters.pclblock")
+    etree.SubElement(_xml, "Option", name="filename").text = pclblock
+    return _xml
+
+
+def xml_add_outlier_filter(xml, meank=20, thresh=3.0):
+    """ Add outlier Filter element and return """
+    # create JSON file for performing outlier removal
     j1 = '{"pipeline": {"name": "Outlier Removal","version": 1.0,"filters":'
     json = j1 + '[{"name": "StatisticalOutlierRemoval","setMeanK": %s,"setStddevMulThresh": %s}]}}' % (meank, thresh)
     f, fname = tempfile.mkstemp(suffix='.json')
     os.write(f, json)
     os.close(f)
-    return fname
+    return xml_add_pclblock(xml, f)
+
+
+def xml_add_classification_filter(xml, classification, equality="equals"):
+    """ Add classification Filter element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.range")
+    _xml = etree.SubElement(fxml, "Option", name="dimension")
+    _xml.text = "Classification"
+    _xml = etree.SubElement(_xml, "Options")
+    etree.SubElement(_xml, "Option", name=equality).text = str(classification)
+    return fxml
+
+
+def xml_add_reader(xml, filename):
+    """ Add LAS Reader Element and return """
+    _xml = etree.SubElement(xml, "Reader", type="readers.las")
+    etree.SubElement(_xml, "Option", name="filename").text = os.path.abspath(filename)
+    return _xml
+
+
+def xml_add_readers(xml, filenames):
+    """ Add merge Filter element and readers to a Writer element and return Filter element """
+    if len(filenames) > 1:
+        fxml = etree.SubElement(xml, "Filter", type="filters.merge")
+    else:
+        fxml = xml
+    for f in filenames:
+        xml_add_reader(fxml, f)
+    return fxml
 
 
 def run_pipeline(xml):
     """ Run PDAL Pipeline with provided XML """
-    # print etree.tostring(xml, pretty_print=True)
+    xml_print(xml)
 
     # write to temp file
     f, xmlfile = tempfile.mkstemp(suffix='.xml')
@@ -116,8 +86,55 @@ def run_pipeline(xml):
         'pipeline',
         '-i %s' % xmlfile,
     ]
-    out = os.system(' '.join(cmd) + ' 2> /dev/null ')
+    #out = os.system(' '.join(cmd) + ' 2> /dev/null ')
+    out = os.system(' '.join(cmd))
     os.remove(xmlfile)
+
+
+def xml_print(xml):
+    """ Pretty print xml """
+    print etree.tostring(xml, pretty_print=True)
+
+
+def create_dtm(filenames, radius, epsg, bounds=None, outdir=''):
+    """ Create DTM from las file """
+    bname = os.path.join(os.path.abspath(outdir), 'DTM_r%s' % radius)
+
+    xml = xml_base(bname, ['den', 'min', 'idw'], radius, epsg, bounds)
+    fxml = xml_add_classification_filter(xml[0], 2)
+    xml_add_readers(fxml, filenames)
+
+    run_pipeline(xml)
+    return bname
+
+
+def create_dsm(filenames, radius, epsg, bounds=None, outliers=None, outdir=''):
+    """ Create DSM from las file """
+    bname = os.path.join(os.path.abspath(outdir), 'DSM_r%s' % radius)
+
+    xml = xml_base(bname, ['den', 'max'], radius, epsg, bounds)
+    # add statistical outlier filter
+    if outliers is not None:
+        _xml = xml_add_outlier_filter(xml[0], thresh=outliers)
+    else:
+        _xml = xml[0]
+    # do not include ground points
+    fxml = xml_add_classification_filter(_xml, 1, equality="max")
+    xml_add_readers(fxml, filenames)
+
+    run_pipeline(xml)
+    return bname
+
+
+def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outdir=''):
+    """ Create all DEMS from this output """
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
+    for rad in dtmrad:
+        create_dtm(filenames, rad, epsg, bounds, outdir=outdir)
+    for rad in dsmrad:
+        create_dsm(filenames, rad, epsg, bounds, outliers=3.0, outdir=outdir)
 
 
 def create_chm(dtm, dsm, chm):
