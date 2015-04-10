@@ -7,6 +7,8 @@ from lxml import etree
 import tempfile
 import gippy
 import numpy
+import subprocess
+import json
 
 
 def xml_base(fout, output, radius, epsg, bounds=None):
@@ -85,6 +87,7 @@ def run_pipeline(xml):
         'pdal',
         'pipeline',
         '-i %s' % xmlfile,
+        '-v4',
     ]
     out = os.system(' '.join(cmd) + ' 2> /dev/null ')
     # out = os.system(' '.join(cmd))
@@ -135,6 +138,20 @@ def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outd
         create_dtm(filenames, rad, epsg, bounds, outdir=outdir)
     for rad in dsmrad:
         create_dsm(filenames, rad, epsg, bounds, outliers=outliers, outdir=outdir)
+
+
+def check_boundaries(filenames, bounds):
+    """ Check that each file at least partially falls within bounds """
+    goodf = []
+    for f in filenames:
+        cmd = ['pdal', 'info', '--metadata', os.path.abspath(f)]
+        meta = json.loads(subprocess.check_output(cmd))['metadata'][0]
+        if (meta['minx'] < bounds[2]) and (meta['maxx'] > bounds[0]) and (meta['miny'] < bounds[3]) and (meta['maxy'] > bounds[1]):
+            goodf.append(f)
+        else:
+            pass
+            # print 'Image %s out of bounds: %s %s %s %s' % (f, meta['minx'], meta['miny'], meta['maxx'], meta['maxy'])
+    return goodf
 
 
 def create_chm(dtm, dsm, chm):
