@@ -3,7 +3,7 @@
 These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git svn cmake libboost-all-dev libgdal0-dev
+$ sudo apt-get install git cmake libboost-all-dev libgdal1-dev
 ~~~~
 
 ## Running CMake
@@ -41,7 +41,7 @@ Points2Grid is used by PDAL to create DEM products from point clouds using a loc
 ## PDAL
 PDAL is the newest LiDAR library for conversion and filtering. It is under very active development and has features particularly well suited to batch processing. There is also excellent documentation: http://www.pdal.io/docs.html
 
-        $ sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libopenni2-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java
+        $ sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java
 
 ###Installation:
 1. Install PCL with the provided script
