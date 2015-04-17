@@ -36,8 +36,8 @@ def main():
     print 'Processing %s LAS files into DEMs' % numfiles
     create_dems(filenames, args.dsm, args.dtm, epsg=args.epsg,
                 outliers=args.outliers, outdir=args.outdir)
-                # bounds not fully working in p2g
-                # bounds=args.bounds, outliers=args.outliers, outdir=args.outdir)
+    # bounds not fully working in p2g
+    # bounds=args.bounds, outliers=args.outliers, outdir=args.outdir)
     print 'Processed in %s' % (datetime.now() - start)
 
 
