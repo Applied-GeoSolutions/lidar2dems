@@ -24,6 +24,6 @@ setup(
     author='Matthew Hanson',
     author_email='matt.a.hanson@gmail.com',
     packages=['l2d'],
-    requirements=['gippy'],
+    requirements=['gippy', 'lxml'],
     entry_points={'console_scripts': scripts}
 )
