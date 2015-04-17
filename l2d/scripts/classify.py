@@ -13,7 +13,7 @@ def main():
     dhf = argparse.ArgumentDefaultsHelpFormatter
 
     parser = argparse.ArgumentParser(description='Classify LAS file(s)', formatter_class=dhf)
-    parser.add_argument('fnames', help='LAS file(s) to classify', nargs='+')
+    parser.add_argument('filenames', help='LAS file(s) to classify', nargs='+')
     parser.add_argument('-s', '--slope', help='Slope', default=1.0)
     parser.add_argument('-c', '--cellsize', help='Cell Size', default=3.0)
     parser.add_argument('--outdir', help='Output directory location', default='./')
