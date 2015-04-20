@@ -18,5 +18,3 @@ l2d_createdems ClassifiedLAS/*.las --dsm 0.56419 --dtm 0.56419 1.4142 2.5 3.0 --
 # process dems and write output to current directory
 l2d_processdems --indir dems
 
-# create vrt of photos
-#gdalbuildvrt photos_lowres.vrt lowres_photos/*.tif
