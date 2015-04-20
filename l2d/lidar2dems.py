@@ -100,40 +100,49 @@ def _xml_print(xml):
     print etree.tostring(xml, pretty_print=True)
 
 
-def create_dtm(filenames, radius, epsg, bounds=None, outdir=''):
-    """ Create DTM from las file """
+def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, outdir=''):
+    """ Create DEM from LAS file """
     start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), 'DTM_r%s' % radius)
-    print 'Creating DTM %s' % bname
+    bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
+    print 'Creating %s: %s' % (demtype, bname)
 
-    xml = _xml_base(bname, ['den', 'min', 'idw'], radius, epsg, bounds)
-    fxml = _xml_add_classification_filter(xml[0], 2)
+    if demtype == 'DSM':
+        outputs = ['den', 'max']
+    else:  # DTM
+        outputs = ['den', 'min', 'idw']
+
+    xml = _xml_base(bname, outputs, radius, epsg)  # , bounds)
+    if demtype == 'DSM':
+        if outliers is not None:
+            _xml = _xml_add_outlier_filter(xml[0], thresh=outliers)
+        else:
+            _xml = xml[0]
+        fxml = _xml_add_classification_filter(_xml, 1, equality='max')
+    else:  # DTM
+        fxml = _xml_add_classification_filter(xml[0], 2)
     _xml_add_readers(fxml, filenames)
 
     run_pipeline(xml)
+
+    warp_image('%s.%s.tif' % (bname, outputs[-1]), bounds)
+
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
 
 
-def create_dsm(filenames, radius, epsg, bounds=None, outliers=None, outdir=''):
-    """ Create DSM from las file """
-    start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), 'DSM_r%s' % radius)
-    print 'Creating DSM %s' % bname
-
-    xml = _xml_base(bname, ['den', 'max'], radius, epsg, bounds)
-    # add statistical outlier filter
-    if outliers is not None:
-        _xml = _xml_add_outlier_filter(xml[0], thresh=outliers)
-    else:
-        _xml = xml[0]
-    # do not include ground points
-    fxml = _xml_add_classification_filter(_xml, 1, equality="max")
-    _xml_add_readers(fxml, filenames)
-
-    run_pipeline(xml)
-    print 'Created %s in %s' % (bname, datetime.now() - start)
-    return bname
+def warp_image(filename, bounds=None):
+    """ Warp image to given EPSG projection, and use bounds if supplied """
+    f, fout = tempfile.mkstemp(suffix='.tif')
+    fout = os.path.splitext(filename)[0] + '_grid.tif'
+    cmd = [
+        'gdalwarp',
+        filename,
+        fout,
+        '-te %s' % ' '.join([str(b) for b in bounds]),
+        '-r bilinear',
+    ]
+    out = os.system(' '.join(cmd))
+    return fout
 
 
 def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outdir=''):
@@ -141,9 +150,9 @@ def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outd
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     for rad in dsmrad:
-        create_dsm(filenames, rad, epsg, bounds, outliers=outliers, outdir=outdir)
+        create_dem(filenames, 'DSM', rad, epsg, bounds, outliers=outliers, outdir=outdir)
     for rad in dtmrad:
-        create_dtm(filenames, rad, epsg, bounds, outdir=outdir)
+        create_dem(filenames, 'DTM', rad, epsg, bounds, outdir=outdir)
 
 
 def check_boundaries(filenames, bounds):

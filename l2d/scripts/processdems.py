@@ -28,11 +28,11 @@ def main():
     print 'Gap-filling and creating final DEMs'
 
     # create gap-filled versions of DSMs
-    dsm_files = glob.glob(os.path.join(args.indir, 'DSM*max.tif'))
+    dsm_files = glob.glob(os.path.join(args.indir, 'DSM*grid.max.tif'))
     dsm = gap_fill(dsm_files, os.path.join(args.outdir, 'DSM.tif'), interpolation=args.interp)
 
     # create gap-filled versions of DTMs
-    dtm_files = glob.glob(os.path.join(args.indir, 'DTM*idw.tif'))
+    dtm_files = glob.glob(os.path.join(args.indir, 'DTM*grid.idw.tif'))
     dtm = gap_fill(dtm_files, os.path.join(args.outdir, 'DTM.tif'), interpolation=args.interp)
 
     # create CHM
