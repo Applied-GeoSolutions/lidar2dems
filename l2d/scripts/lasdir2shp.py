@@ -74,7 +74,7 @@ def process_polygon_dirs(parentdir, shapename, overwrite=False,):
     for poly_dir, poly_id, utmzone in params:
         print poly_dir, poly_id, utmzone
         crs = deepcopy(_crs_template)
-        if utmzone.endswith('S') and 'south' in crs:
+        if utmzone.endswith('S'):
             crs['south'] = True
         crs['zone'] = utmzone[:-1]
         lasdir2shp(
@@ -83,6 +83,18 @@ def process_polygon_dirs(parentdir, shapename, overwrite=False,):
             crs,
             overwrite,
         )
+
+
+def test(leave_shp):
+    tdir = "/mimas/projects/cmsindo/2014-lidar/results/Polygon_009_utm_50S/LAS/"
+    shp = path.join(tdir, "test_tiles.shp")
+    crs = deepcopy(_crs_template)
+    crs['south'] = True
+    lasdir2shp(tdir, shp, crs)
+    assert path.exists(shp), 'created shapefile'
+    if not leave_shp:
+        remove(shp)
+        print('test shp: {}'.format(shp))
 
 
 if __name__ == '__main__':
@@ -102,11 +114,18 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         'top_dir',
-        help=('Dir to dig through for "Polygon_..." dirs.')
+        help=('directory to dig through for "Polygon_..." dirs. (test or '
+              'test-leave-shp will run test routine')
     )
     args = parser.parse_args()
-    process_polygon_dirs(
-        parentdir=args.top_dir,
-        shapename=args.shapename,
-        overwrite=args.overwrite
-    )
+
+    if args.top_dir == 'test':
+        test(False)
+    elif args.top_dir == 'test-leave-shp':
+        test(True)
+    else:
+        process_polygon_dirs(
+            parentdir=args.top_dir,
+            shapename=args.shapename,
+            overwrite=args.overwrite,
+        )
