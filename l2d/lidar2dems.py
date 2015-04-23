@@ -177,11 +177,7 @@ def check_boundaries(filenames, bounds):
 def get_bounding_box(filename):
     """ Get bounding box from LAS file """
     meta = get_meta_data(filename)
-    mx, my, Mx, My = map(
-        int,
-        (numpy.floor(meta['minx']), numpy.floor(meta['miny']),
-         numpy.ceil(meta['maxx']), numpy.ceil(meta['maxy']))
-    )
+    mx, my, Mx, My = meta['minx'], meta['miny'], meta['maxx'], meta['maxy']
     bounds = [(mx, my), (Mx, my), (Mx, My), (mx, My), (mx, my)]
     return bounds
 
