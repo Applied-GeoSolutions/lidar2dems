@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
 from glob import glob
-import math
 from copy import deepcopy
-from os import walk, path, remove
-from pprint import pprint
+from os import path, remove
 
 from collections import OrderedDict
-
-import pdb
 
 from lidar2dems import get_bounding_box
 from fiona import collection
@@ -51,7 +47,6 @@ def lasdir2shp(lasdir, fout, crs, overwrite=False):
     filenames = glob(path.join(lasdir, '*.las'))
     oschema = _polygon_file_schema.copy()
     poly = deepcopy(_polygon_template)
-
 
     with collection(
             fout, 'w', crs=crs, driver="ESRI Shapefile", schema=oschema
@@ -110,6 +105,8 @@ if __name__ == '__main__':
         help=('Dir to dig through for "Polygon_..." dirs.')
     )
     args = parser.parse_args()
-    process_polygon_dirs(parentdir=args.top_dir, shapename=args.shapename, overwrite=args.overwrite)
-
-# "PG:dbname='geodata' host='congo' port='5432' user='geosolution' password='Ni28Cu29Zn30'|layername=countries"
+    process_polygon_dirs(
+        parentdir=args.top_dir,
+        shapename=args.shapename,
+        overwrite=args.overwrite
+    )
