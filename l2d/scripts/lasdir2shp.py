@@ -11,7 +11,7 @@ from fiona import collection
 
 _polygon_template = {
     'geometry': {
-        'coordinates': [],  # list of points defining box
+        'coordinates': [],  # list of lists of points defining box
         'type': 'Polygon'
     },
     'id': '0',
@@ -52,7 +52,12 @@ def lasdir2shp(lasdir, fout, crs, overwrite=False):
             fout, 'w', crs=crs, driver="ESRI Shapefile", schema=oschema
         ) as oshp:
         for filename in filenames:
-            poly['geometry']['coordinates'] = [get_bounding_box(filename)]
+            try:
+                poly['geometry']['coordinates'] = [get_bounding_box(filename)]
+            except Exception as e:
+                if 'min_points' in str(e):
+                    continue
+                raise e
             poly['properties']['las_file'] = filename
             oshp.write(poly)
             poly['id'] = str(int(poly['id']) + 1)
@@ -85,16 +90,16 @@ def process_polygon_dirs(parentdir, shapename, overwrite=False,):
         )
 
 
-def test(leave_shp):
+def test(leave_shp, overwrite):
     tdir = "/mimas/projects/cmsindo/2014-lidar/results/Polygon_009_utm_50S/LAS/"
     shp = path.join(tdir, "test_tiles.shp")
     crs = deepcopy(_crs_template)
     crs['south'] = True
-    lasdir2shp(tdir, shp, crs)
+    lasdir2shp(tdir, shp, crs, overwrite)
     assert path.exists(shp), 'created shapefile'
     if not leave_shp:
         remove(shp)
-        print('test shp: {}'.format(shp))
+    print('test shp: {}'.format(shp))
 
 
 if __name__ == '__main__':
@@ -120,9 +125,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.top_dir == 'test':
-        test(False)
+        test(False, args.overwrite)
     elif args.top_dir == 'test-leave-shp':
-        test(True)
+        test(True, args.overwrite)
     else:
         process_polygon_dirs(
             parentdir=args.top_dir,
