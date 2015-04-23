@@ -174,10 +174,13 @@ def check_boundaries(filenames, bounds):
     return goodf
 
 
-def get_bounding_box(filename):
+def get_bounding_box(filename, min_points=2):
     """ Get bounding box from LAS file """
     meta = get_meta_data(filename)
     mx, my, Mx, My = meta['minx'], meta['miny'], meta['maxx'], meta['maxy']
+    if meta['count'] < min_points:
+        raise Exception('{} contains only {} points (min_points={}).'
+                        .format(filename, meta['count'], min_points))
     bounds = [(mx, my), (Mx, my), (Mx, My), (mx, My), (mx, my)]
     return bounds
 
