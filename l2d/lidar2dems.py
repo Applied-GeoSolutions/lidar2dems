@@ -146,15 +146,17 @@ def create_density_image(filenames, epsg, outdir='./'):
     return bname
 
 
-def warp_image(filename, bounds=None):
+def warp_image(filename, bounds=None, suffix='_warp'):
     """ Warp image to given EPSG projection, and use bounds if supplied """
     f, fout = tempfile.mkstemp(suffix='.tif')
-    fout = os.path.splitext(filename)[0] + '_grid.tif'
+    fout = os.path.splitext(filename)[0] + suffix + '.tif'
+    img = gippy.GeoImage(filename)
     cmd = [
         'gdalwarp',
         filename,
         fout,
         '-te %s' % ' '.join([str(b) for b in bounds]),
+        '-a_nodata %s' % img[0].NoDataValue(),
         '-r bilinear',
     ]
     out = os.system(' '.join(cmd))
@@ -252,7 +254,6 @@ def gap_fill(filenames, fout, interpolation='nearest'):
     filenames = sorted(filenames)
     imgs = gippy.GeoImages(filenames)
     nodata = imgs[0][0].NoDataValue()
-
     arr = imgs[0][0].Read()
 
     for i in range(1, imgs.size()):
