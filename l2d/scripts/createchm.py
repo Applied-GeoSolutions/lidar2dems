@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
 
     start = dt.datetime.now()
-    print 'Gap-filling and creating final DEMs from %s files' % len(args.filenames)
+    print 'Creating CHM from %s and %s' % (args.dsm, args.dtm)
 
     fout = create_chm(args.dtm, args.dsm, args.fout)
 
