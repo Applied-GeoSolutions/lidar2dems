@@ -5,11 +5,13 @@
 import os
 from lxml import etree
 import tempfile
+import glob
 import gippy
 import numpy
 import subprocess
 import json
 from datetime import datetime
+from math import floor, ceil
 
 
 def _xml_base(fout, output, radius, epsg, bounds=None):
@@ -135,6 +137,10 @@ def create_density_image(filenames, epsg, outdir='./'):
     """ Create density image using all points """
     start = datetime.now()
     bname = os.path.join(os.path.abspath(outdir), 'allpoints')
+    exist = glob.glob(bname+'*')
+    if len(exist) > 0:
+        return bname
+
     print 'Creating %s' % bname
 
     xml = _xml_base(bname, ['den'], 0.56, epsg)
@@ -156,10 +162,32 @@ def warp_image(filename, bounds=None, suffix='_warp'):
         filename,
         fout,
         '-te %s' % ' '.join([str(b) for b in bounds]),
-        '-a_nodata %s' % img[0].NoDataValue(),
+        '-dstnodata %s' % img[0].NoDataValue(),
         '-r bilinear',
     ]
     out = os.system(' '.join(cmd))
+    return fout
+
+
+def warp_and_clip_image(filename, shapefile, suffix='_warp'):
+    """ Warp image to given EPSG projection, and use bounds if supplied """
+    vec = gippy.GeoVector(shapefile)
+    extent = vec.Extent()
+    bounds = [floor(extent.x0()), floor(extent.y0()), ceil(extent.x1()), ceil(extent.y1())]
+    f, fout = tempfile.mkstemp(suffix='.tif')
+    fout = os.path.splitext(filename)[0] + suffix + '.tif'
+    img = gippy.GeoImage(filename)
+    cmd = [
+        'gdalwarp',
+        filename,
+        fout,
+        '-te %s' % ' '.join([str(b) for b in bounds]),
+        '-dstnodata %s' % img[0].NoDataValue(),
+        '-r bilinear',
+    ]
+    out = os.system(' '.join(cmd))
+    img = gippy.GeoImage(fout, True)
+    crop2vector(img, vec)
     return fout
 
 
@@ -208,7 +236,12 @@ def create_chm(dtm, dsm, chm):
     dtm_img = gippy.GeoImage(dtm)
     dsm_img = gippy.GeoImage(dsm)
     imgout = gippy.GeoImage(chm, dtm_img)
-    imgout[0].Write(dsm_img[0].Read() - dtm_img[0].Read())
+    nodata = dtm_img[0].NoDataValue()
+    imgout.SetNoData(nodata)
+    dsm_arr = dsm_img[0].Read()
+    arr = dsm_arr - dtm_img[0].Read()
+    arr[dsm_arr == nodata] = nodata
+    imgout[0].Write(arr)
     return imgout.Filename()
 
 
@@ -245,7 +278,7 @@ def create_vrts(path, bounds=None, overviews=False):
         create_vrt(files, fout, bounds, overviews)
 
 
-def gap_fill(filenames, fout, interpolation='nearest'):
+def gap_fill(filenames, fout, shapefile=None, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
     from scipy.interpolate import griddata
     if len(filenames) == 0:
@@ -269,4 +302,49 @@ def gap_fill(filenames, fout, interpolation='nearest'):
     imgout = gippy.GeoImage(fout, imgs[0])
     imgout.SetNoData(nodata)
     imgout[0].Write(arr)
+    if shapefile is not None:
+        crop2vector(imgout, gippy.GeoVector(shapefile))
     return imgout.Filename()
+
+
+"""
+These functions are all taken from GIPS
+"""
+
+import commands
+import shutil
+
+
+def transform(filename, srs):
+    """ Transform vector file to another SRS"""
+    # TODO - move functionality into GIPPY
+    bname = os.path.splitext(os.path.basename(filename))[0]
+    td = tempfile.mkdtemp()
+    fout = os.path.join(td, bname + '_warped.shp')
+    prjfile = os.path.join(td, bname + '.prj')
+    f = open(prjfile, 'w')
+    f.write(srs)
+    f.close()
+    cmd = 'ogr2ogr %s %s -t_srs %s' % (fout, filename, prjfile)
+    result = commands.getstatusoutput(cmd)
+    return fout
+
+
+def crop2vector(img, vector):
+    """ Crop a GeoImage down to a vector """
+    # transform vector to srs of image
+    vecname = transform(vector.Filename(), img.Projection())
+    warped_vec = gippy.GeoVector(vecname)
+    # rasterize the vector
+    td = tempfile.mkdtemp()
+    mask = gippy.GeoImage(os.path.join(td, vector.LayerName()), img, gippy.GDT_Byte, 1)
+    maskname = mask.Filename()
+    mask = None
+    cmd = 'gdal_rasterize -at -burn 1 -l %s %s %s' % (warped_vec.LayerName(), vecname, maskname)
+    result = commands.getstatusoutput(cmd)
+    mask = gippy.GeoImage(maskname)
+    img.AddMask(mask[0]).Process().ClearMasks()
+    mask = None
+    shutil.rmtree(os.path.dirname(maskname))
+    shutil.rmtree(os.path.dirname(vecname))
+    return img
