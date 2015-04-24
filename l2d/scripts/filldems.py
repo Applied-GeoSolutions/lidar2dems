@@ -7,9 +7,7 @@ Combined a series of DEM and gap fill.  Optionally regrid using provided shapefi
 import os
 import argparse
 import datetime as dt
-import gippy
-from l2d import warp_image, gap_fill
-from math import floor, ceil
+from l2d import warp_and_clip_image, gap_fill
 
 
 def main():
@@ -31,15 +29,13 @@ def main():
     print 'Gap-filling and creating final DEMs from %s files' % len(args.filenames)
 
     if args.shapefile is not None:
-        extent = gippy.GeoVector(args.shapefile).Extent()
-        bounds = [floor(extent.x0()), floor(extent.y0()), ceil(extent.x1()), ceil(extent.y1())]
         filenames = []
         for f in args.filenames:
-            warp_image(f, bounds)
+            filenames.append(warp_and_clip_image(f, args.shapefile))
     else:
         filenames = args.filenames
 
-    fout = gap_fill(filenames, args.fout, args.interp)
+    fout = gap_fill(filenames, args.fout, shapefile=args.shapefile, interpolation=args.interp)
 
     if args.hillshade:
         cmd = 'gdaldem hillshade %s %s' % (fout, os.path.splitext(fout)[0] + '_hillshade.tif')
