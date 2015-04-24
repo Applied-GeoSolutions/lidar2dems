@@ -100,16 +100,17 @@ def _xml_print(xml):
     print etree.tostring(xml, pretty_print=True)
 
 
-def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, outdir=''):
+def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, outdir='', outputs=None):
     """ Create DEM from LAS file """
     start = datetime.now()
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
     print 'Creating %s: %s' % (demtype, bname)
 
-    if demtype == 'DSM':
-        outputs = ['den', 'max']
-    else:  # DTM
-        outputs = ['den', 'min', 'idw']
+    if outputs is None:
+        if demtype == 'DSM':
+            outputs = ['den', 'max']
+        else:  # DTM
+            outputs = ['den', 'min', 'idw']
 
     xml = _xml_base(bname, outputs, radius, epsg)  # , bounds)
     if demtype == 'DSM':
@@ -125,6 +126,21 @@ def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, out
     run_pipeline(xml)
 
     warp_image('%s.%s.tif' % (bname, outputs[-1]), bounds)
+
+    print 'Created %s in %s' % (bname, datetime.now() - start)
+    return bname
+
+
+def create_density_image(filenames, epsg, outdir='./'):
+    """ Create density image using all points """
+    start = datetime.now()
+    bname = os.path.join(os.path.abspath(outdir), 'allpoints')
+    print 'Creating %s' % bname
+
+    xml = _xml_base(bname, ['den'], 0.56, epsg)
+    _xml_add_readers(xml[0], filenames)
+
+    run_pipeline(xml)
 
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
