@@ -165,7 +165,7 @@ def check_boundaries(filenames, bounds):
     """ Check that each file at least partially falls within bounds """
     goodf = []
     for f in filenames:
-        meta = get_meta_data(lasfilename)
+        meta = get_meta_data(f)
         if (meta['minx'] < bounds[2]) and (meta['maxx'] > bounds[0]) and (meta['miny'] < bounds[3]) and (meta['maxy'] > bounds[1]):
             goodf.append(f)
         else:
