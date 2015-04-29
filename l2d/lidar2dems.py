@@ -11,9 +11,11 @@ import gippy
 import numpy
 import subprocess
 import json
+import ogr
 from datetime import datetime
 from math import floor, ceil
 
+"""XML Functions"""
 
 def _xml_base(fout, output, radius, srs):  # , bounds=None):
     """ Create initial XML for PDAL pipeline containing a Writer element """
@@ -115,8 +117,8 @@ def run_pipeline(xml):
         '-i %s' % xmlfile,
         '-v4',
     ]
-    out = os.system(' '.join(cmd) + ' 2> /dev/null ')
-    # out = os.system(' '.join(cmd))
+    # out = os.system(' '.join(cmd) + ' 2> /dev/null ')
+    out = os.system(' '.join(cmd))
     os.remove(xmlfile)
 
 
@@ -185,10 +187,10 @@ def create_dtm(filenames, radius, vector, outputs=None, outdir=''):
     return bname
 
 
-def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, outdir='', outputs=None):
+def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, outdir='', outputs=None, appendname=None):
     """ Create DEM from LAS file """
     start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
+    bname = os.path.join(os.path.abspath(outdir), '%s_r%s_%s' % (demtype, radius, appendname))
     print 'Creating %s: %s' % (demtype, bname)
 
     if outputs is None:
@@ -210,7 +212,7 @@ def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, out
 
     run_pipeline(xml)
 
-    warp_image('%s.%s.tif' % (bname, outputs[-1]), bounds)
+    warp_and_clip_image('%s.%s.tif' % (bname, outputs[-1]), bounds)
 
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
@@ -273,14 +275,14 @@ def warp_image(filename, vector, suffix='_warp', clip=False):
     return fout
 
 
-def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outdir=''):
+def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outdir='', appendname=None):
     """ Create all DEMS from this output """
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     for rad in dsmrad:
-        create_dem(filenames, 'DSM', rad, epsg, bounds, outliers=outliers, outdir=outdir)
+        create_dem(filenames, 'DSM', rad, epsg, bounds, outliers=outliers, outdir=outdir, appendname=None)
     for rad in dtmrad:
-        create_dem(filenames, 'DTM', rad, epsg, bounds, outdir=outdir)
+        create_dem(filenames, 'DTM', rad, epsg, bounds, outdir=outdir, appendname=None)
 
 
 def create_dems2(filenames, dsmrad, dtmrad, vector, outliers=2.0, maxangle=None, outdir=''):
@@ -323,6 +325,49 @@ def get_bounding_box(filename, min_points=2):
     bounds = [(mx, my), (Mx, my), (Mx, My), (mx, My), (mx, my)]
     return bounds
 
+
+def check_overlap(shp_ftr, tileindexshp):
+    """ Compares LAS tile index bounds to sub-polygon site type bounds to return filelist """
+    #driver = ogr.GetDriverByName('ESRI Shapefile')
+    #src = driver.Open(tileindexshp)
+    lyr = tileindexshp.GetLayer() 
+    sitegeom = shp_ftr.GetGeometryRef()
+    filelist = []
+    
+    for ftr in lyr:
+    
+        tilegeom = ftr.GetGeometryRef()
+        dist = sitegeom.Distance(tilegeom) # checks distance between site type polygon and tile, if 0 the two geometries overlap
+        
+        if dist == 0:
+        
+            filelist.append(ftr.GetField(ftr.GetFieldIndex('las_file'))
+            
+    lyr.ResetReading()
+    return filelist
+            
+
+def create_bounds_file(polygon, outfile):
+    """ Create temporary shapefile with site type polygon """
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    out = driver.CreateDataSource('./tmp.shp')
+    lyr = out.CreateLayer('site', geom_type=ogr.wkbPolygon, srs=osr.SpatialReference().ImportFromEPSG(epsg))
+    
+    geom = polygon.GetGeometryRef()
+    
+    ftr = ogr.Feature(feature_def=lyr.GetLayerDefn())
+    ftr.SetGeometry(geom)
+    lyr.CreateFeature(ftr)
+    ftr.Destroy()
+    out.Destroy()
+    
+    return './tmp.shp'
+    
+
+def delete_bounds_file():
+    """ Delete tmp file """
+    os.remove('./tmp.shp')
+    
 
 def create_chm(dtm, dsm, chm):
     """ Create CHM from a DTM and DSM - assumes common grid """
