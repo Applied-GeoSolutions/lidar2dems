@@ -4,10 +4,9 @@
 Create Canopy Height model from a DSM and DTM
 """
 
-import os
 import argparse
 import datetime as dt
-from l2d import create_chm
+from l2d import create_chm, create_hillshade
 
 
 def main():
@@ -27,10 +26,9 @@ def main():
     fout = create_chm(args.dtm, args.dsm, args.fout)
 
     if args.hillshade:
-        cmd = 'gdaldem hillshade %s %s' % (fout, os.path.splitext(fout)[0] + '_hillshade.tif')
-        os.system(cmd)
+        create_hillshade(fout)
 
-    print 'Created CHM in %s' % (dt.datetime.now() - start)
+    print 'Completed in %s' % (dt.datetime.now() - start)
 
 
 if __name__ == "__main__":
