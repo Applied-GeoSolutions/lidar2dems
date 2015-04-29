@@ -7,8 +7,7 @@ LAS files will be merged together as a single point cloud for processing
 
 import argparse
 from datetime import datetime
-from l2d import create_dems2, check_boundaries
-from l2d import create_dems2, create_dems, check_boundaries, check_overlap
+from l2d import create_dems, check_boundaries, check_overlap
 import gippy
 import ogr
 from math import floor, ceil
