@@ -15,8 +15,8 @@ def main():
 
     desc = 'Calculate and create CHM from a DSM and DTM'
     parser = argparse.ArgumentParser(description=desc, formatter_class=dhf)
-    parser.add_argument('dsm', help='DSM input', default='DSM.tif')
-    parser.add_argument('dtm', help='DTM input', default='DTM.tif')
+    parser.add_argument('dsm', help='DSM input', default='DSM.tif', nargs='?')
+    parser.add_argument('dtm', help='DTM input', default='DTM.tif', nargs='?')
     parser.add_argument('--fout', help='Output filename', default='CHM.tif')
     parser.add_argument('--hillshade', help='Generate hillshade', default=False, action='store_true')
     args = parser.parse_args()
