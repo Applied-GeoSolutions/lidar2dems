@@ -328,46 +328,45 @@ def get_bounding_box(filename, min_points=2):
 
 def check_overlap(shp_ftr, tileindexshp):
     """ Compares LAS tile index bounds to sub-polygon site type bounds to return filelist """
-    #driver = ogr.GetDriverByName('ESRI Shapefile')
-    #src = driver.Open(tileindexshp)
-    lyr = tileindexshp.GetLayer() 
+    # driver = ogr.GetDriverByName('ESRI Shapefile')
+    # src = driver.Open(tileindexshp)
+    lyr = tileindexshp.GetLayer()
     sitegeom = shp_ftr.GetGeometryRef()
     filelist = []
-    
+
     for ftr in lyr:
-    
         tilegeom = ftr.GetGeometryRef()
-        dist = sitegeom.Distance(tilegeom) # checks distance between site type polygon and tile, if 0 the two geometries overlap
-        
+        # checks distance between site type polygon and tile, if 0 the two geometries overlap
+        dist = sitegeom.Distance(tilegeom)
+
         if dist == 0:
-        
-            filelist.append(ftr.GetField(ftr.GetFieldIndex('las_file'))
-            
+            filelist.append(ftr.GetField(ftr.GetFieldIndex('las_file')))
+
     lyr.ResetReading()
     return filelist
-            
+
 
 def create_bounds_file(polygon, outfile):
     """ Create temporary shapefile with site type polygon """
     driver = ogr.GetDriverByName('ESRI Shapefile')
     out = driver.CreateDataSource('./tmp.shp')
     lyr = out.CreateLayer('site', geom_type=ogr.wkbPolygon, srs=osr.SpatialReference().ImportFromEPSG(epsg))
-    
+
     geom = polygon.GetGeometryRef()
-    
+
     ftr = ogr.Feature(feature_def=lyr.GetLayerDefn())
     ftr.SetGeometry(geom)
     lyr.CreateFeature(ftr)
     ftr.Destroy()
     out.Destroy()
-    
+
     return './tmp.shp'
-    
+
 
 def delete_bounds_file():
     """ Delete tmp file """
     os.remove('./tmp.shp')
-    
+
 
 def create_chm(dtm, dsm, chm):
     """ Create CHM from a DTM and DSM - assumes common grid """
