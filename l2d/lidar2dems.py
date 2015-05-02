@@ -25,7 +25,9 @@ def _xml_base(fout, output, radius, srs):  # , bounds=None):
     etree.SubElement(xml[0], "Option", name="grid_dist_y").text = "1.0"
     etree.SubElement(xml[0], "Option", name="radius").text = str(radius)
     etree.SubElement(xml[0], "Option", name="output_format").text = "tif"
-    etree.SubElement(xml[0], "Option", name="spatialreference").text = srs  #'EPSG:%s' % epsg
+    if srs != '':
+        etree.SubElement(xml[0], "Option", name="spatialreference").text = srs
+    # add EPSG option? - 'EPSG:%s' % epsg
     # this not yet working in p2g
     # if bounds is not None:
     #    etree.SubElement(xml[0], "Option", name="bounds").text = bounds
@@ -84,6 +86,16 @@ def _xml_add_scanedge_filter(xml):
     return fxml
 
 
+def _xml_add_maxZ_filter(xml, maxZ):
+    """ Add max elevation Filter element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.range")
+    _xml = etree.SubElement(fxml, "Option", name="dimension")
+    _xml.text = "Z"
+    _xml = etree.SubElement(_xml, "Options")
+    etree.SubElement(_xml, "Option", name="max").text = maxZ
+    return fxml
+
+
 def _xml_add_reader(xml, filename):
     """ Add LAS Reader Element and return """
     _xml = etree.SubElement(xml, "Reader", type="readers.las")
@@ -102,9 +114,10 @@ def _xml_add_readers(xml, filenames):
     return fxml
 
 
-def run_pipeline(xml):
+def run_pipeline(xml, printxml=False):
     """ Run PDAL Pipeline with provided XML """
-    # _xml_print(xml)
+    if printxml:
+        _xml_print(xml)
 
     # write to temp file
     f, xmlfile = tempfile.mkstemp(suffix='.xml')
@@ -131,11 +144,12 @@ def create_dsm(filenames, radius, vector, outliers=None, maxangle=None, outputs=
     """ Create DSM from LAS file(s) """
     demtype = 'DSM'
     start = datetime.now()
+    bname = os.path.join(os.path.abspath(outdir), '%s_%s_r%s' % (os.path.basename(filenames[0]), demtype, radius))
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
     print 'Creating %s: %s' % (demtype, bname)
 
     if outputs is None:
-        outputs = ['den', 'max']
+        outputs = ['max']
 
     xml = _xml_base(bname, outputs, radius, vector.Projection())  # , bounds)
     _xml = xml[0]
@@ -154,8 +168,8 @@ def create_dsm(filenames, radius, vector, outliers=None, maxangle=None, outputs=
 
     run_pipeline(xml)
 
-    if vector is not None:
-        warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
+    #if vector is not None:
+    #    warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
 
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
@@ -165,11 +179,12 @@ def create_dtm(filenames, radius, vector, outputs=None, outdir=''):
     """ Create DTM from LAS file(s) """
     demtype = 'DTM'
     start = datetime.now()
+    bname = os.path.join(os.path.abspath(outdir), '%s_%s_r%s' % (os.path.basename(filenames[0]), demtype, radius))
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
     print 'Creating %s: %s' % (demtype, bname)
 
     if outputs is None:
-        outputs = ['den', 'min', 'idw']
+        outputs = ['min', 'max', 'idw']
 
     xml = _xml_base(bname, outputs, radius, vector.Projection())  # , bounds)
 
@@ -180,8 +195,8 @@ def create_dtm(filenames, radius, vector, outputs=None, outdir=''):
 
     run_pipeline(xml)
 
-    if vector is not None:
-        warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
+    #if vector is not None:
+    #    warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
 
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
@@ -195,9 +210,9 @@ def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, out
 
     if outputs is None:
         if demtype == 'DSM':
-            outputs = ['den', 'max']
+            outputs = ['max']
         else:  # DTM
-            outputs = ['den', 'min', 'idw']
+            outputs = ['min', 'idw']
 
     xml = _xml_base(bname, outputs, radius, epsg)  # , bounds)
     if demtype == 'DSM':
@@ -228,23 +243,28 @@ def create_hillshade(filename):
     return fout
 
 
-def create_density_image(filenames, epsg, outdir='./'):
-    """ Create density image using all points """
-    start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), 'allpoints')
-    exist = glob.glob(bname + '*')
-    if len(exist) > 0:
-        return bname
+def create_density_image(filenames, vector, points='all', outdir='./', clip=False):
+    """ Create density image using all points, ground points, or nonground points  """
+    ext = '.den.tif'
+    # for now, only creates density of all points 
+    bname = os.path.join(os.path.abspath(outdir), 'pts_' + points)
+    if os.path.isfile(bname + ext):
+        return bname + ext
 
-    print 'Creating %s' % bname
-
-    xml = _xml_base(bname, ['den'], 0.56, epsg)
-    _xml_add_readers(xml[0], filenames)
-
+    # pipeline
+    xml = _xml_base(bname, ['den'], 0.56, vector.Projection())
+    _xml = xml[0]
+    if points == 'nonground':
+        _xml = _xml_add_classification_filter(_xml, 1, equality='max')
+    elif points == 'ground':
+        _xml = _xml_add_classification_filter(_xml, 2)
+    _xml_add_readers(_xml, filenames)
     run_pipeline(xml)
 
-    print 'Created %s in %s' % (bname, datetime.now() - start)
-    return bname
+    # align and clip
+    if clip and vector is not None:
+        warp_image(bname + ext, vector, clip=clip)
+    return fname + ext
 
 
 def warp_image(filename, vector, suffix='_warp', clip=False):
@@ -264,14 +284,16 @@ def warp_image(filename, vector, suffix='_warp', clip=False):
         '-r bilinear',
     ]
     if clip:
+        cmd.append('-cutline %s' % vector.Filename())
+        cmd.append('-crop_to_cutline')
         sys.stdout.write('Warping and clipping image: ')
     else:
         sys.stdout.write('Warping image: ')
     sys.stdout.flush()
     out = os.system(' '.join(cmd))
-    if clip:
-        img = gippy.GeoImage(fout, True)
-        crop2vector(img, vector)
+    #if clip:
+    #    img = gippy.GeoImage(fout, True)
+    #    crop2vector(img, vector)
     return fout
 
 
@@ -305,13 +327,14 @@ def check_boundaries(filenames, vector):
     """ Check that each file at least partially falls within bounds """
     bounds = get_vector_bounds(vector)
     goodf = []
+    #print 'bounds ',bounds
     for f in filenames:
         meta = get_meta_data(f)
         if (meta['minx'] < bounds[2]) and (meta['maxx'] > bounds[0]) and (meta['miny'] < bounds[3]) and (meta['maxy'] > bounds[1]):
             goodf.append(f)
         else:
             pass
-            # print 'Image %s out of bounds: %s %s %s %s' % (f, meta['minx'], meta['miny'], meta['maxx'], meta['maxy'])
+            #print 'Image %s out of bounds: %s %s %s %s' % (f, meta['minx'], meta['miny'], meta['maxx'], meta['maxy'])
     return goodf
 
 
