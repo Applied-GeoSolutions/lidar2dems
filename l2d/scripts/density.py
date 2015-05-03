@@ -7,7 +7,7 @@ Creates density image of all files
 import os
 import argparse
 from datetime import datetime
-from l2d import create_density_image
+from l2d import create_density_image, check_boundaries
 import gippy
 
 
@@ -19,8 +19,9 @@ def main():
     parser.add_argument('--outdir', help='Output directory location', default='./')
     ch=['all', 'ground', 'nonground']
     parser.add_argument('--points', help='Which points to use', choices=ch, default='all')
-    parser.add_argument('-s','--site', help='Site shapefile in same projection as LiDAR files', default=None)
-    parser.add_argument('-c','--clip', help='Align to grid and clip to site')
+    h = 'Shapefile in same projection as LiDAR files. Do not process tiles outside this area'
+    parser.add_argument('-s','--site', help=h, default=None)
+    parser.add_argument('-c','--clip', help='Align to grid and clip to site', default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -29,10 +30,16 @@ def main():
 
     start0 = datetime.now()
 
-    print 'Creating density image with %s files' % len(args.filenames)
-
+    # only use files that intersect with site
     site = None if args.site is None else gippy.GeoVector(args.site) 
-    fout = create_density_image(args.filenames, site, points=args.points, outdir=args.outdir, clip=args.clip)
+    if args.site is not None:
+        filenames = check_boundaries(args.filenames, site)
+    else:
+        filenames = args.filenames
+
+    print 'Creating density image with %s files' % len(filenames)
+
+    fout = create_density_image(filenames, site, points=args.points, outdir=args.outdir, clip=args.clip)
 
     print 'Created %s in %s' % (fout, datetime.now() - start0)
 
