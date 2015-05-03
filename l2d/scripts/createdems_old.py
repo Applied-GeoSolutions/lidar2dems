@@ -7,7 +7,7 @@ LAS files will be merged together as a single point cloud for processing
 
 import argparse
 from datetime import datetime
-from l2d import create_dems2, check_boundaries
+from l2d import create_dems2, check_boundaries, check_overlap
 import gippy
 
 
@@ -35,8 +35,9 @@ def main():
 
     numfiles = len(filenames)
     print 'Processing %s LAS files into DEMs' % numfiles
+    #for f in filenames:
     create_dems2(filenames, args.dsm, args.dtm, vector=vector,
-                 outliers=args.outliers, maxangle=args.maxangle, outdir=args.outdir)
+             outliers=args.outliers, maxangle=args.maxangle, outdir=args.outdir)
 
     print 'Processed in %s' % (datetime.now() - start)
 
