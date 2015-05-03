@@ -14,6 +14,8 @@ import json
 import ogr
 from datetime import datetime
 from math import floor, ceil
+from shapely.geometry import box
+from shapely.wkt import loads
 
 """XML Functions"""
 
@@ -114,6 +116,11 @@ def _xml_add_readers(xml, filenames):
     return fxml
 
 
+def _xml_print(xml):
+    """ Pretty print xml """
+    print etree.tostring(xml, pretty_print=True)
+
+
 def run_pipeline(xml, printxml=False):
     """ Run PDAL Pipeline with provided XML """
     if printxml:
@@ -135,12 +142,7 @@ def run_pipeline(xml, printxml=False):
     os.remove(xmlfile)
 
 
-def _xml_print(xml):
-    """ Pretty print xml """
-    print etree.tostring(xml, pretty_print=True)
-
-
-def create_dsm(filenames, radius, vector, outliers=None, maxangle=None, outputs=None, outdir=''):
+def create_dsm(filenames, radius, vector, outliers=None, maxangle=None, outputs=None, outdir='', clip=False):
     """ Create DSM from LAS file(s) """
     demtype = 'DSM'
     start = datetime.now()
@@ -168,14 +170,15 @@ def create_dsm(filenames, radius, vector, outliers=None, maxangle=None, outputs=
 
     run_pipeline(xml)
 
-    #if vector is not None:
-    #    warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
+    # note that vector can't be None or else it would have failed above
+    if clip and vector is not None:
+        warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
 
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
 
 
-def create_dtm(filenames, radius, vector, outputs=None, outdir=''):
+def create_dtm(filenames, radius, vector, outputs=None, outdir='', clip=False):
     """ Create DTM from LAS file(s) """
     demtype = 'DTM'
     start = datetime.now()
@@ -195,8 +198,9 @@ def create_dtm(filenames, radius, vector, outputs=None, outdir=''):
 
     run_pipeline(xml)
 
-    #if vector is not None:
-    #    warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
+    # note that vector can't be None or else it would have failed above
+    if site and vector is not None:
+        warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
 
     print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
@@ -264,7 +268,7 @@ def create_density_image(filenames, vector, points='all', outdir='./', clip=Fals
     # align and clip
     if clip and vector is not None:
         warp_image(bname + ext, vector, clip=clip)
-    return fname + ext
+    return bname + ext
 
 
 def warp_image(filename, vector, suffix='_warp', clip=False):
@@ -324,18 +328,23 @@ def get_meta_data(lasfilename):
 
 
 def check_boundaries(filenames, vector):
-    """ Check that each file at least partially falls within bounds """
-    bounds = get_vector_bounds(vector)
+    """ Return filtered list of filenames that intersect with vector """
+    sitegeom = loads(vector[0].GetGeometryRef().ExportToWkt())
     goodf = []
-    #print 'bounds ',bounds
     for f in filenames:
-        meta = get_meta_data(f)
-        if (meta['minx'] < bounds[2]) and (meta['maxx'] > bounds[0]) and (meta['miny'] < bounds[3]) and (meta['maxy'] > bounds[1]):
+        bbox = bounds(f)
+        if sitegeom.intersection(bbox).area > 0:
             goodf.append(f)
         else:
             pass
-            #print 'Image %s out of bounds: %s %s %s %s' % (f, meta['minx'], meta['miny'], meta['maxx'], meta['maxy'])
+            #print 'Image %s out of bounds' % (f))
     return goodf
+
+
+def bounds(filename):
+    """ Return shapely geometry of bounding box """
+    bounds = get_bounding_box(filename)
+    return box(bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1])
 
 
 def get_bounding_box(filename, min_points=2):
