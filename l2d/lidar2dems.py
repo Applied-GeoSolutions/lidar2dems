@@ -329,22 +329,22 @@ def get_meta_data(lasfilename):
 
 def check_boundaries(filenames, vector):
     """ Return filtered list of filenames that intersect with vector """
-    sitegeom = loads(vector[0].GetGeometryRef().ExportToWkt())
+    sitegeom = loads(vector[0].WKT())
     goodf = []
     for f in filenames:
-        bbox = bounds(f)
-        if sitegeom.intersection(bbox).area > 0:
-            goodf.append(f)
-        else:
+        try:
+            bbox = bounds(f)
+            if sitegeom.intersection(bbox).area > 0:
+                goodf.append(f)
+        except:
             pass
-            #print 'Image %s out of bounds' % (f))
     return goodf
 
 
 def bounds(filename):
     """ Return shapely geometry of bounding box """
     bounds = get_bounding_box(filename)
-    return box(bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1])
+    return box(bounds[0][0], bounds[0][1], bounds[2][0], bounds[2][1])
 
 
 def get_bounding_box(filename, min_points=2):
