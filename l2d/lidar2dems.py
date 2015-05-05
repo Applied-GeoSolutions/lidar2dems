@@ -16,10 +16,12 @@ from datetime import datetime
 from math import floor, ceil
 from shapely.geometry import box
 from shapely.wkt import loads
+import commands
+import shutil
 
 """XML Functions"""
 
-def _xml_base(fout, output, radius, srs):  # , bounds=None):
+def _xml_base(fout, output, radius, site=None):
     """ Create initial XML for PDAL pipeline containing a Writer element """
     xml = etree.Element("Pipeline", version="1.0")
     etree.SubElement(xml, "Writer", type="writers.p2g")
@@ -27,34 +29,25 @@ def _xml_base(fout, output, radius, srs):  # , bounds=None):
     etree.SubElement(xml[0], "Option", name="grid_dist_y").text = "1.0"
     etree.SubElement(xml[0], "Option", name="radius").text = str(radius)
     etree.SubElement(xml[0], "Option", name="output_format").text = "tif"
-    if srs != '':
-        etree.SubElement(xml[0], "Option", name="spatialreference").text = srs
     # add EPSG option? - 'EPSG:%s' % epsg
-    # this not yet working in p2g
-    # if bounds is not None:
-    #    etree.SubElement(xml[0], "Option", name="bounds").text = bounds
+    if site is not None:
+        etree.SubElement(xml[0], "Option", name="spatialreference").text = site.Projection()
+        # this not yet working in p2g
+        #bounds = get_vector_bounds(site)
+        #bounds = '([%s, %s], [%s, %s])' % (bounds[0], bounds[2], bounds[1], bounds[3])
+        #etree.SubElement(xml[0], "Option", name="bounds").text = bounds
     etree.SubElement(xml[0], "Option", name="filename").text = fout
     for t in output:
         etree.SubElement(xml[0], "Option", name="output_type").text = t
     return xml
 
+##### FILTERS
 
 def _xml_add_pclblock(xml, pclblock):
     """ Add pclblock Filter element by taking in filename of a JSON file """
     _xml = etree.SubElement(xml, "Filter", type="filters.pclblock")
     etree.SubElement(_xml, "Option", name="filename").text = pclblock
     return _xml
-
-
-def _xml_add_outlier_filter(xml, meank=20, thresh=3.0):
-    """ Add outlier Filter element and return """
-    # create JSON file for performing outlier removal
-    j1 = '{"pipeline": {"name": "Outlier Removal","version": 1.0,"filters":'
-    json = j1 + '[{"name": "StatisticalOutlierRemoval","setMeanK": %s,"setStddevMulThresh": %s}]}}' % (meank, thresh)
-    f, fname = tempfile.mkstemp(suffix='.json')
-    os.write(f, json)
-    os.close(f)
-    return _xml_add_pclblock(xml, fname)
 
 
 def _xml_add_classification_filter(xml, classification, equality="equals"):
@@ -67,25 +60,15 @@ def _xml_add_classification_filter(xml, classification, equality="equals"):
     return fxml
 
 
-def _xml_add_scanangle_filter(xml, maxabsangle):
-    """ Add scan angle Filter element and return """
-    fxml = etree.SubElement(xml, "Filter", type="filters.range")
-    _xml = etree.SubElement(fxml, "Option", name="dimension")
-    _xml.text = "ScanAngleRank"
-    _xml = etree.SubElement(_xml, "Options")
-    etree.SubElement(_xml, "Option", name="max").text = maxabsangle
-    etree.SubElement(_xml, "Option", name="min").text = -maxabsangle
-    return fxml
-
-
-def _xml_add_scanedge_filter(xml):
-    """ Add EdgeOfFlightLine Filter element and return """
-    fxml = etree.SubElement(xml, "Filter", type="filters.range")
-    _xml = etree.SubElement(fxml, "Option", name="dimension")
-    _xml.text = "EdgeOfFlightLine"
-    _xml = etree.SubElement(_xml, "Options")
-    etree.SubElement(_xml, "Option", name="equals").text = 0
-    return fxml
+def _xml_add_maxsd_filter(xml, meank=20, thresh=3.0):
+    """ Add outlier Filter element and return """
+    # create JSON file for performing outlier removal
+    j1 = '{"pipeline": {"name": "Outlier Removal","version": 1.0,"filters":'
+    json = j1 + '[{"name": "StatisticalOutlierRemoval","setMeanK": %s,"setStddevMulThresh": %s}]}}' % (meank, thresh)
+    f, fname = tempfile.mkstemp(suffix='.json')
+    os.write(f, json)
+    os.close(f)
+    return _xml_add_pclblock(xml, fname)
 
 
 def _xml_add_maxZ_filter(xml, maxZ):
@@ -96,6 +79,39 @@ def _xml_add_maxZ_filter(xml, maxZ):
     _xml = etree.SubElement(_xml, "Options")
     etree.SubElement(_xml, "Option", name="max").text = maxZ
     return fxml
+
+
+def _xml_add_maxangle_filter(xml, maxabsangle):
+    """ Add scan angle Filter element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.range")
+    _xml = etree.SubElement(fxml, "Option", name="dimension")
+    _xml.text = "ScanAngleRank"
+    _xml = etree.SubElement(_xml, "Options")
+    etree.SubElement(_xml, "Option", name="max").text = maxabsangle
+    etree.SubElement(_xml, "Option", name="min").text = str(-float(maxabsangle))
+    return fxml
+
+
+def _xml_add_scanedge_filter(xml, value):
+    """ Add EdgeOfFlightLine Filter element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.range")
+    _xml = etree.SubElement(fxml, "Option", name="dimension")
+    _xml.text = "EdgeOfFlightLine"
+    _xml = etree.SubElement(_xml, "Options")
+    etree.SubElement(_xml, "Option", name="equals").text = value
+    return fxml
+
+
+def _xml_add_filters(xml, maxsd=None, maxZ=None, maxangle=None, scanedge=None):
+    if maxsd is not None:
+        xml = _xml_add_maxsd_filter(xml, thresh=maxsd)
+    if maxZ is not None:
+        xml = _xml_add_maxZ_filter(xml, maxZ)
+    if maxangle is not None:
+        xml = _xml_add_maxangle_filter(xml, maxangle)
+    if scanedge is not None:
+        xml = _xml_add_scanedge_filter(xml, scanedge)
+    return xml
 
 
 def _xml_add_reader(xml, filename):
@@ -121,13 +137,15 @@ def _xml_print(xml):
     print etree.tostring(xml, pretty_print=True)
 
 
-def run_pipeline(xml, printxml=False):
+def run_pipeline(xml, verbose=False):
     """ Run PDAL Pipeline with provided XML """
-    if printxml:
+    if verbose:
         _xml_print(xml)
 
     # write to temp file
     f, xmlfile = tempfile.mkstemp(suffix='.xml')
+    if verbose:
+        print 'Pipeline file: %s' % xmlfile
     os.write(f, etree.tostring(xml))
     os.close(f)
 
@@ -142,99 +160,122 @@ def run_pipeline(xml, printxml=False):
     os.remove(xmlfile)
 
 
-def create_dsm(filenames, radius, vector, outliers=None, maxangle=None, outputs=None, outdir='', clip=False):
+def add_filter_parsers(parser):
+    """ Add a few different filter options to the parser """
+    parser.add_argument('--maxsd', help='Filter outliers with this SD threshold', default=None)
+    parser.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
+    parser.add_argument('--maxZ', help='Filter by maximum elevation value', default=None)
+    parser.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
+    return parser
+
+##### Create DEM files
+
+def create_density(filenames, site, clip=False, points='all', 
+                   maxsd=None, maxZ=None, maxangle=None, scanedge=None, 
+                   outdir='./', suffix='', verbose=False):
+    """ Create density image using all points, ground points, or nonground points  """
+    ext = '.den.tif'
+    bname = os.path.join(os.path.abspath(outdir), 'pts_' + points + suffix)
+    if os.path.isfile(bname + ext):
+        return bname + ext
+
+    # pipeline
+    xml = _xml_base(bname, ['den'], 0.56, site)
+    _xml = xml[0]
+    _xml = _xml_add_filters(_xml, maxsd, maxZ, maxangle, scanedge)
+    if points == 'nonground':
+        _xml = _xml_add_classification_filter(_xml, 1, equality='max')
+    elif points == 'ground':
+        _xml = _xml_add_classification_filter(_xml, 2)
+    _xml_add_readers(_xml, filenames)
+    run_pipeline(xml, verbose=verbose)
+
+    # align and clip
+    if clip and site is not None:
+        warp_image(bname + ext, site, clip=clip)
+    return bname + ext
+
+
+def create_dsm(filenames, radius='0.56', site=None, clip=False,
+               maxsd=None, maxZ=None, maxangle=None, scanedge=None, 
+               outputs=None, outdir='', suffix='', verbose=False):
     """ Create DSM from LAS file(s) """
     demtype = 'DSM'
-    start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), '%s_%s_r%s' % (os.path.basename(filenames[0]), demtype, radius))
-    bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
-    print 'Creating %s: %s' % (demtype, bname)
-
+    bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
     if outputs is None:
         outputs = ['max']
 
-    xml = _xml_base(bname, outputs, radius, vector.Projection())  # , bounds)
+    # pipeline
+    xml = _xml_base(bname, outputs, radius, site)
     _xml = xml[0]
-
-    # filter statistical outliers
-    if outliers is not None:
-        _xml = _xml_add_outlier_filter(xml[0], thresh=outliers)
-
-    if maxangle is not None:
-        _xml = _xml_add_scanangle_filter(xml[0], maxangle)
-
+    _xml = _xml_add_filters(_xml, maxsd, maxZ, maxangle, scanedge)
     # non-ground points only
     fxml = _xml_add_classification_filter(_xml, 1, equality='max')
-
     _xml_add_readers(fxml, filenames)
+    run_pipeline(xml, verbose=verbose)
 
-    run_pipeline(xml)
+    # align and clip
+    if clip and site is not None:
+        ext = '.tif'
+        for t in outputs:
+            warp_image(bname + '.' + t + ext, site, clip=clip)
 
-    # note that vector can't be None or else it would have failed above
-    if clip and vector is not None:
-        warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
-
-    print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
 
 
-def create_dtm(filenames, radius, vector, outputs=None, outdir='', clip=False):
+def create_dtm(filenames, radius='0.56', site=None, clip=False,
+              outputs=None, outdir='', suffix='', verbose=False):
     """ Create DTM from LAS file(s) """
     demtype = 'DTM'
-    start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), '%s_%s_r%s' % (os.path.basename(filenames[0]), demtype, radius))
-    bname = os.path.join(os.path.abspath(outdir), '%s_r%s' % (demtype, radius))
-    print 'Creating %s: %s' % (demtype, bname)
-
+    bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
     if outputs is None:
         outputs = ['min', 'max', 'idw']
 
-    xml = _xml_base(bname, outputs, radius, vector.Projection())  # , bounds)
-
+    xml = _xml_base(bname, outputs, radius, site)
     # ground points only
     fxml = _xml_add_classification_filter(xml[0], 2)
-
     _xml_add_readers(fxml, filenames)
+    run_pipeline(xml, verbose=verbose)
 
-    run_pipeline(xml)
+    # align and clip
+    if clip and site is not None:
+        ext = '.tif'
+        for t in outputs:
+            warp_image(bname + '.' + t + ext, site, clip=clip)
 
-    # note that vector can't be None or else it would have failed above
-    if site and vector is not None:
-        warp_image('%s.%s.tif' % (bname, outputs[-1]), vector)
-
-    print 'Created %s in %s' % (bname, datetime.now() - start)
     return bname
 
 
-def create_dem(filenames, demtype, radius, epsg, bounds=None, outliers=None, outdir='', outputs=None, appendname=None):
-    """ Create DEM from LAS file """
-    start = datetime.now()
-    bname = os.path.join(os.path.abspath(outdir), '%s_r%s_%s' % (demtype, radius, appendname))
-    print 'Creating %s: %s' % (demtype, bname)
+def create_dems(demtype, filenames, features, radius='0.56', suffix='', **kwargs):
+    """ Convenience function to run DSM or DTM by polygon to all radii """
+    if demtype.lower() == 'dsm':
+        func = create_dsm
+    elif demtype.lower() == 'dtm':
+        func = create_dtm
+    else:
+        raise Exception('invalid demtype %s' % demtype)
+    # loop through all features
+    for i, feature in enumerate(features):
+        fnames = check_overlap(filenames, feature)
+        # this is to add a naming scheme so DTMs and DSMs do not get overwritten 
+        suff = suffix + '_%s_of_%s' % (i, features.size())
+        print 'Polygon %s of %s: processing % files' % (i+1, features.size(), len(filenames))
+        func(fnames, suffix=suff, **kwargs) 
+    # TODO - combine all parts (for each radii)
 
-    if outputs is None:
-        if demtype == 'DSM':
-            outputs = ['max']
-        else:  # DTM
-            outputs = ['min', 'idw']
 
-    xml = _xml_base(bname, outputs, radius, epsg)  # , bounds)
-    if demtype == 'DSM':
-        if outliers is not None:
-            _xml = _xml_add_outlier_filter(xml[0], thresh=outliers)
-        else:
-            _xml = xml[0]
-        fxml = _xml_add_classification_filter(_xml, 1, equality='max')
-    else:  # DTM
-        fxml = _xml_add_classification_filter(xml[0], 2)
-    _xml_add_readers(fxml, filenames)
-
-    run_pipeline(xml)
-
-    warp_and_clip_image('%s.%s.tif' % (bname, outputs[-1]), bounds)
-
-    print 'Created %s in %s' % (bname, datetime.now() - start)
-    return bname
+def create_chm(dtm, dsm, chm):
+    """ Create CHM from a DTM and DSM - assumes common grid """
+    dtm_img = gippy.GeoImage(dtm)
+    dsm_img = gippy.GeoImage(dsm)
+    imgout = gippy.GeoImage(chm, dtm_img)
+    nodata = dtm_img[0].NoDataValue()
+    imgout.SetNoData(nodata)
+    dsm_arr = dsm_img[0].Read()
+    arr = dsm_arr - dtm_img[0].Read()
+    arr[dsm_arr == nodata] = nodata
+    imgout[0].Write(arr)
+    return imgout.Filename()
 
 
 def create_hillshade(filename):
@@ -246,30 +287,7 @@ def create_hillshade(filename):
     os.system(cmd)
     return fout
 
-
-def create_density_image(filenames, vector, points='all', outdir='./', clip=False):
-    """ Create density image using all points, ground points, or nonground points  """
-    ext = '.den.tif'
-    # for now, only creates density of all points 
-    bname = os.path.join(os.path.abspath(outdir), 'pts_' + points)
-    if os.path.isfile(bname + ext):
-        return bname + ext
-
-    # pipeline
-    xml = _xml_base(bname, ['den'], 0.56, vector.Projection())
-    _xml = xml[0]
-    if points == 'nonground':
-        _xml = _xml_add_classification_filter(_xml, 1, equality='max')
-    elif points == 'ground':
-        _xml = _xml_add_classification_filter(_xml, 2)
-    _xml_add_readers(_xml, filenames)
-    run_pipeline(xml)
-
-    # align and clip
-    if clip and vector is not None:
-        warp_image(bname + ext, vector, clip=clip)
-    return bname + ext
-
+##### Transforms and utilities
 
 def warp_image(filename, vector, suffix='_warp', clip=False):
     """ Warp image to given projection, and use bounds if supplied """
@@ -295,53 +313,18 @@ def warp_image(filename, vector, suffix='_warp', clip=False):
         sys.stdout.write('Warping image: ')
     sys.stdout.flush()
     out = os.system(' '.join(cmd))
-    #if clip:
-    #    img = gippy.GeoImage(fout, True)
-    #    crop2vector(img, vector)
     return fout
 
+##### Geometries and Bouding boxes
 
-def create_dems(filenames, dsmrad, dtmrad, epsg, bounds=None, outliers=3.0, outdir='', appendname=None):
-    """ Create all DEMS from this output """
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    for rad in dsmrad:
-        create_dem(filenames, 'DSM', rad, epsg, bounds, outliers=outliers, outdir=outdir, appendname=None)
-    for rad in dtmrad:
-        create_dem(filenames, 'DTM', rad, epsg, bounds, outdir=outdir, appendname=None)
-
-
-def create_dems2(filenames, dsmrad, dtmrad, vector, outliers=2.0, maxangle=None, outdir=''):
-    """ Create series of DEMs, both DSM and DTM """
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    for rad in dsmrad:
-        create_dsm(filenames, rad, vector, outliers=outliers, outdir=outdir)
-    for rad in dtmrad:
-        create_dtm(filenames, rad, vector, outdir=outdir)
-
-
-def get_meta_data(lasfilename):
-    cmd = ['pdal', 'info', '--metadata', '--input', os.path.abspath(lasfilename)]
+def get_meta_data(filename):
+    """ Get metadata from lasfile as dictionary """
+    cmd = ['pdal', 'info', '--metadata', '--input', os.path.abspath(filename)]
     meta = json.loads(subprocess.check_output(cmd))['metadata'][0]
     return meta
 
 
-def check_boundaries(filenames, vector):
-    """ Return filtered list of filenames that intersect with vector """
-    sitegeom = loads(vector[0].WKT())
-    goodf = []
-    for f in filenames:
-        try:
-            bbox = bounds(f)
-            if sitegeom.intersection(bbox).area > 0:
-                goodf.append(f)
-        except:
-            pass
-    return goodf
-
-
-def bounds(filename):
+def get_bounds(filename):
     """ Return shapely geometry of bounding box """
     bounds = get_bounding_box(filename)
     return box(bounds[0][0], bounds[0][1], bounds[2][0], bounds[2][1])
@@ -358,7 +341,21 @@ def get_bounding_box(filename, min_points=2):
     return bounds
 
 
-def check_overlap(shp_ftr, tileindexshp):
+def check_overlap(filenames, vector):
+    """ Return filtered list of filenames that intersect with vector """
+    sitegeom = loads(vector.WKT())
+    goodf = []
+    for f in filenames:
+        try:
+            bbox = get_bounds(f)
+            if sitegeom.intersection(bbox).area > 0:
+                goodf.append(f)
+        except:
+            pass
+    return goodf
+
+
+def check_overlap2(shp_ftr, tileindexshp):
     """ Compares LAS tile index bounds to sub-polygon site type bounds to return filelist """
     # driver = ogr.GetDriverByName('ESRI Shapefile')
     # src = driver.Open(tileindexshp)
@@ -380,7 +377,7 @@ def check_overlap(shp_ftr, tileindexshp):
 
 def create_bounds_file(polygon, outfile):
     """ Create temporary shapefile with site type polygon """
-    driver = ogr.GetDriverByName('ESRI Shapefile')
+    driver = ogr.GetDriverByName('Shapefile')
     out = driver.CreateDataSource('./tmp.shp')
     lyr = out.CreateLayer('site', geom_type=ogr.wkbPolygon, srs=osr.SpatialReference().ImportFromEPSG(epsg))
 
@@ -398,20 +395,6 @@ def create_bounds_file(polygon, outfile):
 def delete_bounds_file():
     """ Delete tmp file """
     os.remove('./tmp.shp')
-
-
-def create_chm(dtm, dsm, chm):
-    """ Create CHM from a DTM and DSM - assumes common grid """
-    dtm_img = gippy.GeoImage(dtm)
-    dsm_img = gippy.GeoImage(dsm)
-    imgout = gippy.GeoImage(chm, dtm_img)
-    nodata = dtm_img[0].NoDataValue()
-    imgout.SetNoData(nodata)
-    dsm_arr = dsm_img[0].Read()
-    arr = dsm_arr - dtm_img[0].Read()
-    arr[dsm_arr == nodata] = nodata
-    imgout[0].Write(arr)
-    return imgout.Filename()
 
 
 def get_vector_bounds(vector):
@@ -486,10 +469,6 @@ def gap_fill(filenames, fout, shapefile=None, interpolation='nearest'):
 """
 These functions are all taken from GIPS
 """
-
-import commands
-import shutil
-
 
 def transform(filename, srs):
     """ Transform vector file to another SRS"""
