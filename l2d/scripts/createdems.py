@@ -7,7 +7,7 @@ LAS files will be merged together as a single point cloud for processing
 
 import argparse
 from datetime import datetime
-from l2d import create_dems, check_boundaries, check_overlap
+from l2d import create_dems, check_boundaries, check_overlap, add_filter_parsers
 import gippy
 import ogr
 from math import floor, ceil
@@ -21,8 +21,7 @@ def main():
     parser.add_argument('filenames', help='Classified LAS file(s) to process', nargs='+')
     parser.add_argument('--dsm', help='Create DSM (run for each provided radius)', nargs='*', default=[])
     parser.add_argument('--dtm', help='Create DTM (run for each provided radius)', nargs='*', default=[])
-    parser.add_argument('--outliers', help='Filter outliers with this StdDev threshold in the DSM', default=3.0)
-    parser.add_argument('--maxangle', help='Filter out points whose absolute value of scan angle is larger', default=None)
+    add_filter_parsers(parser)
     parser.add_argument('-s', '--shapefile', help='Shapefile with bounds', default=None)
     parser.add_argument('--tileindex', help='Shapefile of LAS tile extents in polygon', default=None)
     parser.add_argument('--outdir', help='Output directory', default='./')
@@ -53,7 +52,11 @@ def main():
 
             # this will be the function that classifies the files prior to creating dems
             # might want to add if statement in case classified files exist
-            classify_las(filenames)
+            #classify_las(filenames)
+
+            create_dsm(filenames, radius=args.dsm, site=site, **vars(args))
+
+            create_dtm(filenames, radius=args.dtm, site=site, **vars(args))
 
             create_dems(filenames, args.dsm, args.dtm, epsg=args.epsg,
                         bounds=bounds, outliers=args.outliers, outdir=args.outdir, appendname=partname)
