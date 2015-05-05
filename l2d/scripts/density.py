@@ -7,7 +7,7 @@ Creates density image of all files
 import os
 import argparse
 from datetime import datetime
-from l2d import create_density_image, check_boundaries
+from l2d import add_filter_parsers, check_overlap, create_density
 import gippy
 
 
@@ -22,6 +22,9 @@ def main():
     h = 'Shapefile in same projection as LiDAR files. Do not process tiles outside this area'
     parser.add_argument('-s','--site', help=h, default=None)
     parser.add_argument('-c','--clip', help='Align to grid and clip to site', default=False, action='store_true')
+    parser.add_argument('--suffix', help='Suffix to append to output file', default='')
+    parser.add_argument('-v', '--verbose', help='Print additional output', default=False, action='store_true')
+    add_filter_parsers(parser)
 
     args = parser.parse_args()
 
@@ -33,13 +36,15 @@ def main():
     # only use files that intersect with site
     site = None if args.site is None else gippy.GeoVector(args.site) 
     if args.site is not None:
-        filenames = check_boundaries(args.filenames, site)
+        filenames = check_overlap(args.filenames, site)
     else:
         filenames = args.filenames
 
     print 'Creating density image with %s files' % len(filenames)
 
-    fout = create_density_image(filenames, site, points=args.points, outdir=args.outdir, clip=args.clip)
+    del args.filenames
+    del args.site
+    fout = create_density(filenames, site, **vars(args))
 
     print 'Created %s in %s' % (fout, datetime.now() - start0)
 
