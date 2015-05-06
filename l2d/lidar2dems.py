@@ -6,20 +6,23 @@ import os
 import sys
 from lxml import etree
 import tempfile
-import glob
 import gippy
 import numpy
 import subprocess
 import json
 import ogr
-from datetime import datetime
 from math import floor, ceil
 from shapely.geometry import box
 from shapely.wkt import loads
 import commands
 import shutil
+import argparse
+import glob
+from datetime import datetime
+
 
 """XML Functions"""
+
 
 def _xml_base(fout, output, radius, site=None):
     """ Create initial XML for PDAL pipeline containing a Writer element """
@@ -33,15 +36,14 @@ def _xml_base(fout, output, radius, site=None):
     if site is not None:
         etree.SubElement(xml[0], "Option", name="spatialreference").text = site.Projection()
         # this not yet working in p2g
-        #bounds = get_vector_bounds(site)
-        #bounds = '([%s, %s], [%s, %s])' % (bounds[0], bounds[2], bounds[1], bounds[3])
-        #etree.SubElement(xml[0], "Option", name="bounds").text = bounds
+        # bounds = get_vector_bounds(site)
+        # bounds = '([%s, %s], [%s, %s])' % (bounds[0], bounds[2], bounds[1], bounds[3])
+        # etree.SubElement(xml[0], "Option", name="bounds").text = bounds
     etree.SubElement(xml[0], "Option", name="filename").text = fout
     for t in output:
         etree.SubElement(xml[0], "Option", name="output_type").text = t
     return xml
 
-##### FILTERS
 
 def _xml_add_pclblock(xml, pclblock):
     """ Add pclblock Filter element by taking in filename of a JSON file """
@@ -71,13 +73,13 @@ def _xml_add_maxsd_filter(xml, meank=20, thresh=3.0):
     return _xml_add_pclblock(xml, fname)
 
 
-def _xml_add_maxZ_filter(xml, maxZ):
+def _xml_add_maxz_filter(xml, maxz):
     """ Add max elevation Filter element and return """
     fxml = etree.SubElement(xml, "Filter", type="filters.range")
     _xml = etree.SubElement(fxml, "Option", name="dimension")
     _xml.text = "Z"
     _xml = etree.SubElement(_xml, "Options")
-    etree.SubElement(_xml, "Option", name="max").text = maxZ
+    etree.SubElement(_xml, "Option", name="max").text = maxz
     return fxml
 
 
@@ -102,11 +104,11 @@ def _xml_add_scanedge_filter(xml, value):
     return fxml
 
 
-def _xml_add_filters(xml, maxsd=None, maxZ=None, maxangle=None, scanedge=None):
+def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None):
     if maxsd is not None:
         xml = _xml_add_maxsd_filter(xml, thresh=maxsd)
-    if maxZ is not None:
-        xml = _xml_add_maxZ_filter(xml, maxZ)
+    if maxz is not None:
+        xml = _xml_add_maxz_filter(xml, maxz)
     if maxangle is not None:
         xml = _xml_add_maxangle_filter(xml, maxangle)
     if scanedge is not None:
@@ -160,112 +162,157 @@ def run_pipeline(xml, verbose=False):
     os.remove(xmlfile)
 
 
-def add_filter_parsers(parser):
-    """ Add a few different filter options to the parser """
-    parser.add_argument('--maxsd', help='Filter outliers with this SD threshold', default=None)
-    parser.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
-    parser.add_argument('--maxZ', help='Filter by maximum elevation value', default=None)
-    parser.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
-    return parser
-
-##### Create DEM files
-
-def create_density(filenames, site, clip=False, points='all', 
-                   maxsd=None, maxZ=None, maxangle=None, scanedge=None, 
-                   outdir='./', suffix='', verbose=False):
-    """ Create density image using all points, ground points, or nonground points  """
-    ext = '.den.tif'
-    bname = os.path.join(os.path.abspath(outdir), 'pts_' + points + suffix)
-    if os.path.isfile(bname + ext):
-        return bname + ext
-
-    # pipeline
-    xml = _xml_base(bname, ['den'], 0.56, site)
-    _xml = xml[0]
-    _xml = _xml_add_filters(_xml, maxsd, maxZ, maxangle, scanedge)
-    if points == 'nonground':
-        _xml = _xml_add_classification_filter(_xml, 1, equality='max')
-    elif points == 'ground':
-        _xml = _xml_add_classification_filter(_xml, 2)
-    _xml_add_readers(_xml, filenames)
-    run_pipeline(xml, verbose=verbose)
-
-    # align and clip
-    if clip and site is not None:
-        warp_image(bname + ext, site, clip=clip)
-    return bname + ext
+""" Argument Parsing """
 
 
-def create_dsm(filenames, radius='0.56', site=None, clip=False,
-               maxsd=None, maxZ=None, maxangle=None, scanedge=None, 
+class l2dParser(argparse.ArgumentParser):
+    """ Extends argparser parser """
+
+    demtypes = {
+        'density': 'Total point density with optional filters',
+        'dsm': 'Digital Surface Model (non-ground points)',
+        'dtm': 'Digital Terrain Model (ground points)'
+    }
+
+    def __init__(self, commands=False, **kwargs):
+        super(l2dParser, self).__init__(**kwargs)
+        self.commands = commands
+        self.formatter_class = argparse.ArgumentDefaultsHelpFormatter
+        self.parent_parsers = []
+
+    def error(self, message):
+        """ print help on error """
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+
+    def get_parser(self):
+        """ Get new parser if using commands otherwise return self """
+        if self.commands:
+            return l2dParser(add_help=False)
+        else:
+            return self
+
+    def parse_args(self, **kwargs):
+        if self.commands:
+            subparser = self.add_subparsers(dest='demtype')
+            for src, desc in self.demtypes.items():
+                subparser.add_parser(src, help=desc, parents=self.parent_parsers)
+        args = super(l2dParser, self).parse_args(**kwargs)
+        return args
+
+    def add_input_parser(self):
+        """ Add input arguments to parser """
+        parser = self.get_parser()
+        group = parser.add_argument_group('input options')
+        group.add_argument('filenames', help='Classified LAS file(s) to process', nargs='+')
+        group.add_argument('-r', '--radius', help='Create DEM or each provided radius', nargs='*', default=['0.56'])
+        group.add_argument('-s', '--site', help='Shapefile of site in same projection as LiDAR', default=None)
+        group.add_argument('-f', '--features', help='Process by these features (polygons)', default=None)
+        group.add_argument('-v', '--verbose', help='Print additional info', default=False, action='store_true')
+        self.parent_parsers.append(parser)
+
+    def add_output_parser(self):
+        parser = self.get_parser()
+        group = parser.add_argument_group('output options')
+        group.add_argument('--outdir', help='Output directory', default='./')
+        group.add_argument('--suffix', help='Suffix to append to output', default='')
+        group.add_argument('-c', '--clip', help='Align and clip to site shapefile', default=False, action='store_true')
+        self.parent_parsers.append(parser)
+
+    def add_filter_parser(self):
+        """ Add a few different filter options to the parser """
+        parser = self.get_parser()
+        group = parser.add_argument_group('filtering options')
+        group.add_argument('--maxsd', help='Filter outliers with this SD threshold', default=None)
+        group.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
+        group.add_argument('--maxz', help='Filter by maximum elevation value', default=None)
+        group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
+        self.parent_parsers.append(parser)
+
+
+""" Create DEM files """
+
+
+def dem_outputs(demtype):
+    """ Return outputs for this dem type """
+    outs = {
+        'density': ['den'],
+        'dsm': ['den', 'max'],
+        'dtm': ['den', 'min', 'max', 'idw']
+    }
+    return outs[demtype]
+
+
+def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
+               maxsd=None, maxz=None, maxangle=None, scanedge=None,
                outputs=None, outdir='', suffix='', verbose=False):
-    """ Create DSM from LAS file(s) """
-    demtype = 'DSM'
+    """ Create DEM (points, dsm, dtm) using given radius """
+    print 'fjkj'
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
+    print bname
+    ext = 'tif'
     if outputs is None:
-        outputs = ['max']
+        outputs = dem_outputs(demtype)
 
-    # pipeline
-    xml = _xml_base(bname, outputs, radius, site)
-    _xml = xml[0]
-    _xml = _xml_add_filters(_xml, maxsd, maxZ, maxangle, scanedge)
-    # non-ground points only
-    fxml = _xml_add_classification_filter(_xml, 1, equality='max')
-    _xml_add_readers(fxml, filenames)
-    run_pipeline(xml, verbose=verbose)
+    run = False
+    for o in outputs:
+        f = bname + '.%s.%s' % (o, ext)
+        if not os.path.exists(f):
+            run = True
+
+    if run:
+        # xml pipeline
+        xml = _xml_base(bname, outputs, radius, site)
+        _xml = xml[0]
+        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge)
+        if demtype == 'dsm':
+            _xml = _xml_add_classification_filter(_xml, 1, equality='max')
+        elif demtype == 'dtm':
+            _xml = _xml_add_classification_filter(xml[0], 2)
+        _xml_add_readers(_xml, filenames)
+        run_pipeline(xml, verbose=verbose)
 
     # align and clip
     if clip and site is not None:
-        ext = '.tif'
         for t in outputs:
             warp_image(bname + '.' + t + ext, site, clip=clip)
 
     return bname
 
 
-def create_dtm(filenames, radius='0.56', site=None, clip=False,
-              outputs=None, outdir='', suffix='', verbose=False):
-    """ Create DTM from LAS file(s) """
-    demtype = 'DTM'
-    bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
-    if outputs is None:
-        outputs = ['min', 'max', 'idw']
-
-    xml = _xml_base(bname, outputs, radius, site)
-    # ground points only
-    fxml = _xml_add_classification_filter(xml[0], 2)
-    _xml_add_readers(fxml, filenames)
-    run_pipeline(xml, verbose=verbose)
-
-    # align and clip
-    if clip and site is not None:
-        ext = '.tif'
-        for t in outputs:
-            warp_image(bname + '.' + t + ext, site, clip=clip)
-
-    return bname
-
-
-def create_dems(demtype, filenames, features, radius='0.56', suffix='', **kwargs):
-    """ Convenience function to run DSM or DTM by polygon to all radii """
-    if demtype.lower() == 'dsm':
-        func = create_dsm
-    elif demtype.lower() == 'dtm':
-        func = create_dtm
-    else:
-        raise Exception('invalid demtype %s' % demtype)
+def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **kwargs):
+    """ Convenience function to run DEM piecemeal (by series of polygons) """
     # loop through all features
+    start = datetime.now()
+    bnames = []
     for i, feature in enumerate(features):
+        # TODO - clip each feature to site boundary
         fnames = check_overlap(filenames, feature)
-        # this is to add a naming scheme so DTMs and DSMs do not get overwritten 
-        suff = suffix + '_%s_of_%s' % (i, features.size())
-        print 'Polygon %s of %s: processing % files' % (i+1, features.size(), len(filenames))
-        func(fnames, suffix=suff, **kwargs) 
-    # TODO - combine all parts (for each radii)
+        # this is to add a naming scheme so DTMs and DSMs do not get overwritten
+        suff = suffix + '_%sof%s' % (i + 1, features.size())
+        print 'Polygon %s of %s: processing %s files' % (i + 1, features.size(), len(fnames))
+        f = create_dem(demtype, fnames, suffix=suff, outdir=outdir, **kwargs)
+        bnames.append(f)
+        print f
+    fouts = []
+    # combine pieces together
+    for b in bnames:
+        # loop through each output type
+        for out in dem_outputs(demtype):
+            fnames = glob.glob('%s*.%s.tif' % (b, out))
+            fout = os.path.join(outdir, '%s.%s.vrt' % (demtype, out))
+            print fnames, fout
+            if not os.path.exists(fout):
+                create_vrt(fnames, fout)
+            fouts.append(fout)
+    print 'Completed in %s' % (datetime.now() - start)
+    return fouts
 
 
 def create_chm(dtm, dsm, chm):
     """ Create CHM from a DTM and DSM - assumes common grid """
+    # TODO - create dems if not created ?
     dtm_img = gippy.GeoImage(dtm)
     dsm_img = gippy.GeoImage(dsm)
     imgout = gippy.GeoImage(chm, dtm_img)
@@ -278,16 +325,72 @@ def create_chm(dtm, dsm, chm):
     return imgout.Filename()
 
 
-def create_hillshade(filename):
-    """ Create hillshade image from this file """
-    fout = os.path.splitext(filename)[0] + '_hillshade.tif'
-    sys.stdout.write('Creating hillshade: ')
-    sys.stdout.flush()
-    cmd = 'gdaldem hillshade %s %s' % (filename, fout)
-    os.system(cmd)
+def gap_fill(filenames, fout, shapefile=None, interpolation='nearest'):
+    """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
+    from scipy.interpolate import griddata
+    if len(filenames) == 0:
+        raise Exception('No filenames provided!')
+
+    filenames = sorted(filenames)
+    imgs = gippy.GeoImages(filenames)
+    nodata = imgs[0][0].NoDataValue()
+    arr = imgs[0][0].Read()
+
+    for i in range(1, imgs.size()):
+        locs = numpy.where(arr == nodata)
+        arr[locs] = imgs[i][0].Read()[locs]
+
+    # interpolation at bad points
+    goodlocs = numpy.where(arr != nodata)
+    badlocs = numpy.where(arr == nodata)
+    arr[badlocs] = griddata(goodlocs, arr[goodlocs], badlocs, method=interpolation)
+
+    # write output
+    imgout = gippy.GeoImage(fout, imgs[0])
+    imgout.SetNoData(nodata)
+    imgout[0].Write(arr)
+    if shapefile is not None:
+        crop2vector(imgout, gippy.GeoVector(shapefile))
+    return imgout.Filename()
+
+
+""" Geometries, Bounding boxes, and transforms """
+
+
+def transform(filename, srs):
+    """ Transform vector file to another SRS"""
+    # TODO - move functionality into GIPPY
+    bname = os.path.splitext(os.path.basename(filename))[0]
+    td = tempfile.mkdtemp()
+    fout = os.path.join(td, bname + '_warped.shp')
+    prjfile = os.path.join(td, bname + '.prj')
+    f = open(prjfile, 'w')
+    f.write(srs)
+    f.close()
+    cmd = 'ogr2ogr %s %s -t_srs %s' % (fout, filename, prjfile)
+    result = commands.getstatusoutput(cmd)
     return fout
 
-##### Transforms and utilities
+
+def crop2vector(img, vector):
+    """ Crop a GeoImage down to a vector """
+    # transform vector to srs of image
+    vecname = transform(vector.Filename(), img.Projection())
+    warped_vec = gippy.GeoVector(vecname)
+    # rasterize the vector
+    td = tempfile.mkdtemp()
+    mask = gippy.GeoImage(os.path.join(td, vector.LayerName()), img, gippy.GDT_Byte, 1)
+    maskname = mask.Filename()
+    mask = None
+    cmd = 'gdal_rasterize -at -burn 1 -l %s %s %s' % (warped_vec.LayerName(), vecname, maskname)
+    result = commands.getstatusoutput(cmd)
+    mask = gippy.GeoImage(maskname)
+    img.AddMask(mask[0]).Process().ClearMasks()
+    mask = None
+    shutil.rmtree(os.path.dirname(maskname))
+    shutil.rmtree(os.path.dirname(vecname))
+    return img
+
 
 def warp_image(filename, vector, suffix='_warp', clip=False):
     """ Warp image to given projection, and use bounds if supplied """
@@ -295,6 +398,8 @@ def warp_image(filename, vector, suffix='_warp', clip=False):
 
     f, fout = tempfile.mkstemp(suffix='.tif')
     fout = os.path.splitext(filename)[0] + suffix + '.tif'
+    if os.path.exists(fout):
+        return fout
     img = gippy.GeoImage(filename)
     cmd = [
         'gdalwarp',
@@ -315,7 +420,6 @@ def warp_image(filename, vector, suffix='_warp', clip=False):
     out = os.system(' '.join(cmd))
     return fout
 
-##### Geometries and Bouding boxes
 
 def get_meta_data(filename):
     """ Get metadata from lasfile as dictionary """
@@ -404,6 +508,19 @@ def get_vector_bounds(vector):
     return bounds
 
 
+""" GDAL Utility wrappers """
+
+
+def create_hillshade(filename):
+    """ Create hillshade image from this file """
+    fout = os.path.splitext(filename)[0] + '_hillshade.tif'
+    sys.stdout.write('Creating hillshade: ')
+    sys.stdout.flush()
+    cmd = 'gdaldem hillshade %s %s' % (filename, fout)
+    os.system(cmd)
+    return fout
+
+
 def create_vrt(filenames, fout, bounds=None, overviews=False):
     """ Create VRT called fout from filenames """
     if os.path.exists(fout):
@@ -431,75 +548,6 @@ def create_vrts(path, bounds=None, overviews=False):
     names = set(map(lambda x: pattern.match(x).groups()[0], fnames))
     print path
     for n in names:
-        print n
         fout = os.path.abspath(os.path.join(path, '%s.vrt' % n))
         files = glob.glob(os.path.abspath(os.path.join(path, '*%s.tif' % n)))
         create_vrt(files, fout, bounds, overviews)
-
-
-def gap_fill(filenames, fout, shapefile=None, interpolation='nearest'):
-    """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
-    from scipy.interpolate import griddata
-    if len(filenames) == 0:
-        raise Exception('No filenames provided!')
-
-    filenames = sorted(filenames)
-    imgs = gippy.GeoImages(filenames)
-    nodata = imgs[0][0].NoDataValue()
-    arr = imgs[0][0].Read()
-
-    for i in range(1, imgs.size()):
-        locs = numpy.where(arr == nodata)
-        arr[locs] = imgs[i][0].Read()[locs]
-
-    # interpolation at bad points
-    goodlocs = numpy.where(arr != nodata)
-    badlocs = numpy.where(arr == nodata)
-    arr[badlocs] = griddata(goodlocs, arr[goodlocs], badlocs, method=interpolation)
-
-    # write output
-    imgout = gippy.GeoImage(fout, imgs[0])
-    imgout.SetNoData(nodata)
-    imgout[0].Write(arr)
-    if shapefile is not None:
-        crop2vector(imgout, gippy.GeoVector(shapefile))
-    return imgout.Filename()
-
-
-"""
-These functions are all taken from GIPS
-"""
-
-def transform(filename, srs):
-    """ Transform vector file to another SRS"""
-    # TODO - move functionality into GIPPY
-    bname = os.path.splitext(os.path.basename(filename))[0]
-    td = tempfile.mkdtemp()
-    fout = os.path.join(td, bname + '_warped.shp')
-    prjfile = os.path.join(td, bname + '.prj')
-    f = open(prjfile, 'w')
-    f.write(srs)
-    f.close()
-    cmd = 'ogr2ogr %s %s -t_srs %s' % (fout, filename, prjfile)
-    result = commands.getstatusoutput(cmd)
-    return fout
-
-
-def crop2vector(img, vector):
-    """ Crop a GeoImage down to a vector """
-    # transform vector to srs of image
-    vecname = transform(vector.Filename(), img.Projection())
-    warped_vec = gippy.GeoVector(vecname)
-    # rasterize the vector
-    td = tempfile.mkdtemp()
-    mask = gippy.GeoImage(os.path.join(td, vector.LayerName()), img, gippy.GDT_Byte, 1)
-    maskname = mask.Filename()
-    mask = None
-    cmd = 'gdal_rasterize -at -burn 1 -l %s %s %s' % (warped_vec.LayerName(), vecname, maskname)
-    result = commands.getstatusoutput(cmd)
-    mask = gippy.GeoImage(maskname)
-    img.AddMask(mask[0]).Process().ClearMasks()
-    mask = None
-    shutil.rmtree(os.path.dirname(maskname))
-    shutil.rmtree(os.path.dirname(vecname))
-    return img
