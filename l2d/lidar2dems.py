@@ -157,8 +157,10 @@ def run_pipeline(xml, verbose=False):
         '-i %s' % xmlfile,
         '-v4',
     ]
-    # out = os.system(' '.join(cmd) + ' 2> /dev/null ')
-    out = os.system(' '.join(cmd))
+    if verbose:
+        out = os.system(' '.join(cmd))
+    else:
+        out = os.system(' '.join(cmd) + ' 2> /dev/null ')
     os.remove(xmlfile)
 
 
