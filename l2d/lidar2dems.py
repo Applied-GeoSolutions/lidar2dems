@@ -283,7 +283,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
         if demtype == 'dsm':
             _xml = _xml_add_classification_filter(_xml, 1, equality='max')
         elif demtype == 'dtm':
-            _xml = _xml_add_classification_filter(xml[0], 2)
+            _xml = _xml_add_classification_filter(_xml, 2)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
 
