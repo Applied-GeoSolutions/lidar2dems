@@ -244,21 +244,34 @@ def dem_outputs(demtype):
     return outs[demtype]
 
 
+def splitexts(filename):
+    """ Split off two extensions """
+    bname, ext = os.path.splitext(filename)
+    parts = os.path.splitext(bname)
+    if len(parts) == 2 and parts[1] in ['.den', '.min', '.max', '.mean', '.idw']:
+        bname = parts[0]
+        ext = parts[1] + ext
+    return bname, ext
+
+
 def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
                maxsd=None, maxz=None, maxangle=None, scanedge=None,
                outputs=None, outdir='', suffix='', verbose=False):
     """ Create DEM (points, dsm, dtm) using given radius """
+    start = datetime.now()
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
     ext = 'tif'
     if outputs is None:
         outputs = dem_outputs(demtype)
+    exts = ['.%s.%s' % (o, ext) for o in outputs]
 
+    # run if any output files missing
     run = False
-    for o in outputs:
-        f = bname + '.%s.%s' % (o, ext)
-        if not os.path.exists(f):
+    for e in exts:
+        if not os.path.exists(bname + e):
             run = True
 
+    print 'Creating %s [%s]' % (bname, ' '.join(exts))
     if run:
         # xml pipeline
         xml = _xml_base(bname, outputs, radius, site)
@@ -274,7 +287,9 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
     # align and clip
     if clip and site is not None:
         for t in outputs:
-            warp_image(bname + '.' + t + ext, site, clip=clip)
+            warp_image(bname + '.%s.%s' % (t, ext), site, clip=clip)
+
+    print 'Completed %s in %s' % (bname, datetime.now() - start)
 
     return bname
 
@@ -390,14 +405,17 @@ def crop2vector(img, vector):
     return img
 
 
-def warp_image(filename, vector, suffix='_warp', clip=False):
-    """ Warp image to given projection, and use bounds if supplied """
+def warp_image(filename, vector, suffix='_clip', clip=False):
+    """ Warp image to given projection, and use bounds if supplied. Creates new file """
     bounds = get_vector_bounds(vector)
 
-    f, fout = tempfile.mkstemp(suffix='.tif')
-    fout = os.path.splitext(filename)[0] + suffix + '.tif'
+    #f, fout = tempfile.mkstemp(suffix='.tif')
+    # output file
+    parts = splitexts(filename)
+    fout = parts[0] + suffix + parts[1]
     if os.path.exists(fout):
         return fout
+
     img = gippy.GeoImage(filename)
     cmd = [
         'gdalwarp',
