@@ -308,7 +308,6 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
         suff = suffix + '_%sof%s' % (i + 1, features.size())
         f = create_dem(demtype, fnames, suffix=suff, outdir=outdir, **kwargs)
         bnames.append(f)
-        print f
     fouts = []
     # combine pieces together
     for b in bnames:
@@ -316,7 +315,6 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
         for out in dem_outputs(demtype):
             fnames = glob.glob('%s*.%s.tif' % (b, out))
             fout = os.path.join(outdir, '%s.%s.vrt' % (demtype, out))
-            print fnames, fout
             if not os.path.exists(fout):
                 create_vrt(fnames, fout)
             fouts.append(fout)
@@ -567,7 +565,6 @@ def create_vrts(path, bounds=None, overviews=False):
     pattern = re.compile('.*_(D[ST]M_.*).tif')
     fnames = glob.glob(os.path.join(path, '*.tif'))
     names = set(map(lambda x: pattern.match(x).groups()[0], fnames))
-    print path
     for n in names:
         fout = os.path.abspath(os.path.join(path, '%s.vrt' % n))
         files = glob.glob(os.path.abspath(os.path.join(path, '*%s.tif' % n)))
