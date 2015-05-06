@@ -271,7 +271,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
         if not os.path.exists(bname + e):
             run = True
 
-    print 'Creating %s [%s]' % (bname, ' '.join(exts))
+    print 'Creating %s [%s] from %s files' % (os.path.relpath(bname), ' '.join(exts), len(filenames))
     if run:
         # xml pipeline
         xml = _xml_base(bname, outputs, radius, site)
