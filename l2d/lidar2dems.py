@@ -440,10 +440,9 @@ def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
     if clip:
         cmd.append('-cutline %s' % vector.Filename())
         cmd.append('-crop_to_cutline')
-        sys.stdout.write('Warping and clipping %s: ' % os.path.relpath(filename))
+        sys.stdout.write('Warping and clipping %s\n' % os.path.relpath(filename))
     else:
-        sys.stdout.write('Warping %s' % os.path.relpath(filename))
-    sys.stdout.flush()
+        sys.stdout.write('Warping %s\n' % os.path.relpath(filename))
     out = os.system(' '.join(cmd))
     return fout
 
