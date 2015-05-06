@@ -296,7 +296,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
     return bname
 
 
-def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **kwargs):
+def create_dem_piecewise(features, demtype, filenames, site=None, clip=False, outdir='', suffix='', **kwargs):
     """ Convenience function to run DEM piecemeal (by series of polygons) """
     # loop through all features
     start = datetime.now()
@@ -306,7 +306,7 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
         fnames = check_overlap(filenames, feature)
         # this is to add a naming scheme so DTMs and DSMs do not get overwritten
         suff = suffix + '_%sof%s' % (i + 1, features.size())
-        f = create_dem(demtype, fnames, suffix=suff, outdir=outdir, **kwargs)
+        f = create_dem(demtype, fnames, site=site, suffix=suff, outdir=outdir, **kwargs)
         bnames.append(f)
     fouts = []
     # combine pieces together
@@ -318,6 +318,9 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
             if not os.path.exists(fout):
                 create_vrt(fnames, fout)
             fouts.append(fout)
+            # align and clip
+            if clip and site is not None:
+                warp_image(fout, site, clip=clip)
     print 'Completed piecewise DEM in %s' % (datetime.now() - start)
     return fouts
 
