@@ -318,7 +318,7 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
             if not os.path.exists(fout):
                 create_vrt(fnames, fout)
             fouts.append(fout)
-    #print 'Completed in %s' % (datetime.now() - start)
+    print 'Completed piecewise DEM in %s' % (datetime.now() - start)
     return fouts
 
 
@@ -408,7 +408,7 @@ def crop2vector(img, vector):
     return img
 
 
-def warp_image(filename, vector, suffix='_clip', clip=False):
+def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
     """ Warp image to given projection, and use bounds if supplied. Creates new file """
     bounds = get_vector_bounds(vector)
 
@@ -429,12 +429,14 @@ def warp_image(filename, vector, suffix='_clip', clip=False):
         "-t_srs '%s'" % vector.Projection(),
         '-r bilinear',
     ]
+    if not verbose:
+        cmd.append('-q')
     if clip:
         cmd.append('-cutline %s' % vector.Filename())
         cmd.append('-crop_to_cutline')
-        sys.stdout.write('Warping and clipping image: ')
+        sys.stdout.write('Warping and clipping %s: ' % os.path.relpath(filename))
     else:
-        sys.stdout.write('Warping image: ')
+        sys.stdout.write('Warping %s' % os.path.relpath(filename))
     sys.stdout.flush()
     out = os.system(' '.join(cmd))
     return fout
