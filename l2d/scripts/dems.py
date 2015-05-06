@@ -42,7 +42,7 @@ def main():
     for rad in radii:
         func(radius=rad, **vars(args))
 
-    print 'Complete in %s' % (datetime.now() - start0)
+    #print 'Complete in %s' % (datetime.now() - start0)
 
 
 if __name__ == '__main__':

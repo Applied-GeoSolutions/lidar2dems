@@ -273,7 +273,8 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
         if not os.path.exists(bname + e):
             run = True
 
-    print 'Creating %s [%s] from %s files' % (os.path.relpath(bname), ' '.join(exts), len(filenames))
+    pname = os.path.relpath(bname) + ' [%s]' % (' '.join(exts))
+    print 'Creating %s from %s files' % (pname, len(filenames))
     if run:
         # xml pipeline
         xml = _xml_base(bname, outputs, radius, site)
@@ -291,7 +292,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
         for t in outputs:
             warp_image(bname + '.%s.%s' % (t, ext), site, clip=clip)
 
-    print 'Completed %s in %s' % (bname, datetime.now() - start)
+    print 'Completed %s in %s' % (pname, datetime.now() - start)
 
     return bname
 
