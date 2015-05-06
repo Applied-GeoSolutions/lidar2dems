@@ -338,7 +338,7 @@ def create_chm(dtm, dsm, chm):
     return imgout.Filename()
 
 
-def gap_fill(filenames, fout, shapefile=None, interpolation='nearest'):
+def gap_fill(filenames, fout, site=None, interpolation='nearest', clip=False):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
     from scipy.interpolate import griddata
     if len(filenames) == 0:
@@ -362,9 +362,13 @@ def gap_fill(filenames, fout, shapefile=None, interpolation='nearest'):
     imgout = gippy.GeoImage(fout, imgs[0])
     imgout.SetNoData(nodata)
     imgout[0].Write(arr)
-    if shapefile is not None:
-        crop2vector(imgout, gippy.GeoVector(shapefile))
-    return imgout.Filename()
+
+    # align and clip
+    if clip and site is not None:
+        for t in outputs:
+            warp_image(fout, site, clip=clip)
+
+    return fout
 
 
 """ Geometries, Bounding boxes, and transforms """
