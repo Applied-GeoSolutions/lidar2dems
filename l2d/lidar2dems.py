@@ -304,7 +304,6 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
         fnames = check_overlap(filenames, feature)
         # this is to add a naming scheme so DTMs and DSMs do not get overwritten
         suff = suffix + '_%sof%s' % (i + 1, features.size())
-        print 'Polygon %s of %s: processing %s files' % (i + 1, features.size(), len(fnames))
         f = create_dem(demtype, fnames, suffix=suff, outdir=outdir, **kwargs)
         bnames.append(f)
         print f
@@ -319,7 +318,7 @@ def create_dem_piecewise(features, demtype, filenames, outdir='', suffix='', **k
             if not os.path.exists(fout):
                 create_vrt(fnames, fout)
             fouts.append(fout)
-    print 'Completed in %s' % (datetime.now() - start)
+    #print 'Completed in %s' % (datetime.now() - start)
     return fouts
 
 
