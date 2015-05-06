@@ -39,9 +39,7 @@ def main():
     # create dems for each given radius
     radii = args.radius 
     del args.radius
-    print func
     for rad in radii:
-        print rad
         func(radius=rad, **vars(args))
 
     print 'Complete in %s' % (datetime.now() - start0)

@@ -248,9 +248,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
                maxsd=None, maxz=None, maxangle=None, scanedge=None,
                outputs=None, outdir='', suffix='', verbose=False):
     """ Create DEM (points, dsm, dtm) using given radius """
-    print 'fjkj'
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
-    print bname
     ext = 'tif'
     if outputs is None:
         outputs = dem_outputs(demtype)
