@@ -318,10 +318,10 @@ def create_dem_piecewise(features, demtype, filenames, site=None, clip=False, ou
             fout = os.path.join(outdir, '%s.%s.vrt' % (demtype, out))
             if not os.path.exists(fout):
                 create_vrt(fnames, fout)
-            fouts.append(fout)
             # align and clip
             if clip and site is not None:
-                warp_image(fout, site, clip=clip)
+                fout = warp_image(fout, site, clip=clip)
+            fouts.append(fout)
     print 'Completed piecewise DEM in %s' % (datetime.now() - start)
     return fouts
 
@@ -415,11 +415,14 @@ def crop2vector(img, vector):
 def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
     """ Warp image to given projection, and use bounds if supplied. Creates new file """
     bounds = get_vector_bounds(vector)
-
+    
     #f, fout = tempfile.mkstemp(suffix='.tif')
     # output file
     parts = splitexts(filename)
     fout = parts[0] + suffix + parts[1]
+    # change to tif
+    fout = os.path.splitext(fout)[0] + '.tif'
+    print 'warp ', filename, fout
     if os.path.exists(fout):
         return fout
 
