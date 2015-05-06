@@ -422,7 +422,6 @@ def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
     fout = parts[0] + suffix + parts[1]
     # change to tif
     fout = os.path.splitext(fout)[0] + '.tif'
-    print 'warp ', filename, fout
     if os.path.exists(fout):
         return fout
 
