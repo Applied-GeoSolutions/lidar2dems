@@ -297,31 +297,33 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
     return bname
 
 
-def create_dem_piecewise(features, demtype, filenames, site=None, clip=False, outdir='', suffix='', **kwargs):
-    """ Convenience function to run DEM piecemeal (by series of polygons) """
+def create_dem_piecewise(features, demtype, filenames, radius='0.56', 
+                         site=None, clip=False, 
+                         outdir='', suffix='', verbose=False, **kwargs):
+    """ run create_dem piecemeal (by series of polygons) and combine after """
     # loop through all features
     start = datetime.now()
+    ext = 'tif'
     bnames = []
     for i, feature in enumerate(features):
         # TODO - clip each feature to site boundary
         fnames = check_overlap(filenames, feature)
         # this is to add a naming scheme so DTMs and DSMs do not get overwritten
         suff = suffix + '_%sof%s' % (i + 1, features.size())
-        f = create_dem(demtype, fnames, site=site, suffix=suff, outdir=outdir, **kwargs)
+        f = create_dem(demtype, fnames, radius=radius, site=site, 
+                       suffix=suff, outdir=outdir, verbose=verbose, **kwargs)
         bnames.append(f)
     fouts = []
-    # combine pieces together
-    for b in bnames:
-        # loop through each output type
-        for out in dem_outputs(demtype):
-            fnames = glob.glob('%s*.%s.tif' % (b, out))
-            fout = os.path.join(outdir, '%s.%s.vrt' % (demtype, out))
-            if not os.path.exists(fout):
-                create_vrt(fnames, fout)
-            # align and clip
-            if clip and site is not None:
-                fout = warp_image(fout, site, clip=clip)
-            fouts.append(fout)
+    # combine pieces together for each output type
+    for out in dem_outputs(demtype):
+        fnames = ['%s.%s.%s' % (b, out, ext) for b in bnames]
+        fout = os.path.join(outdir, '%s_r%s%s.%s.vrt' % (demtype, radius, suffix, out))
+        if not os.path.exists(fout):
+            create_vrt(fnames, fout)
+        # align and clip
+        if clip and site is not None:
+            fout = warp_image(fout, site, clip=clip)
+        fouts.append(fout)
     print 'Completed piecewise DEM in %s' % (datetime.now() - start)
     return fouts
 
@@ -547,7 +549,7 @@ def create_hillshade(filename):
     return fout
 
 
-def create_vrt(filenames, fout, bounds=None, overviews=False):
+def create_vrt(filenames, fout, bounds=None, overviews=False, verbose=False):
     """ Create VRT called fout from filenames """
     if os.path.exists(fout):
         return
@@ -555,6 +557,8 @@ def create_vrt(filenames, fout, bounds=None, overviews=False):
         'gdalbuildvrt',
         fout,
     ]
+    if not verbose:
+        cmd.append('-q')
     cmd.extend(filenames)
     if bounds is not None:
         cmd.append('-te %s' % (' '.join(bounds)))
