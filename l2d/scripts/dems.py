@@ -48,9 +48,10 @@ def main():
     # gap-fill each type of output file
     if gapfill:
         for product in fouts[0].keys():
-            filenames = [f[product] for f in fouts]
-            fout = os.path.join(args.outdir, '%s%s.%s.tif' % (args.demtype, args.suffix, product))
-            gap_fill(filenames, fout, site=args.site)
+            if product != 'den'
+                filenames = [f[product] for f in fouts]
+                fout = os.path.join(args.outdir, '%s%s.%s.tif' % (args.demtype, args.suffix, product))
+                gap_fill(filenames, fout, site=args.site)
 
     #print 'Complete in %s' % (datetime.now() - start0)
 
