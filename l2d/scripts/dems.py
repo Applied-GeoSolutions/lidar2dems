@@ -6,7 +6,7 @@ Creates density image of all files
 
 import os
 from datetime import datetime
-from l2d import l2dParser, create_dem, create_dem_piecewise
+from l2d import l2dParser, create_dem, create_dem_piecewise, gap_fill
 from gippy import GeoVector
 
 
@@ -21,7 +21,7 @@ def main():
 
     # open vectors
     if args.site is not None:
-        args.site = GeoVector(args.site)
+        args.site = GeoVector(args.site)[0]
     if args.features is not None:
         args.features = GeoVector(args.features)
 
@@ -39,8 +39,18 @@ def main():
     # create dems for each given radius
     radii = args.radius 
     del args.radius
+    gapfill = args.gapfill
+    del args.gapfill
+    fouts = []
     for rad in radii:
-        func(radius=rad, **vars(args))
+        fouts.append(func(radius=rad, **vars(args)))
+
+    # gap-fill each type of output file
+    if gapfill:
+        for product in fouts[0].keys():
+            filenames = [f[product] for f in fouts]
+            fout = os.path.join(args.outdir, '%s%s.%s.tif' % (args.demtype, args.suffix, product))
+            gap_fill(filenames, fout, site=args.site)
 
     #print 'Complete in %s' % (datetime.now() - start0)
 

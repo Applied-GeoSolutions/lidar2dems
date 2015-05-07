@@ -275,7 +275,6 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
         if len(glob.glob(f[:-3]  + '*')) == 0:
             run = True
     pname = os.path.relpath(bname) + ' [%s]' % (' '.join(outputs))
-    print 'dem %s' % pname
     if run:
         filenames = check_overlap(filenames, site) 
         print 'Creating %s from %s files' % (pname, len(filenames))
@@ -314,8 +313,7 @@ def create_dem_piecewise(features, demtype, filenames, radius='0.56',
         f = create_dem(demtype, filenames, radius=radius, site=site, 
                        suffix=suff, outdir=outdir, verbose=verbose, **kwargs)
         pieces.append(f)
-
-    fouts = []
+    fouts = {}
     # combine pieces together for each output type
     for out in dem_outputs(demtype):
         fnames = [p[out] for p in pieces]
@@ -323,10 +321,12 @@ def create_dem_piecewise(features, demtype, filenames, radius='0.56',
         if len(glob.glob(fout + '.*')) == 0:
             create_vrt(fnames, fout + '.vrt')
         # align and clip
+        fout = fout + '.vrt'
         if clip and site is not None:
-            fout = warp_image(fout + '.vrt', site, clip=clip)
-        fouts.append(fout)
+            fout = warp_image(fout, site, clip=clip)
+        fouts[out] = fout
     print 'Completed piecewise DEM in %s' % (datetime.now() - start)
+
     return fouts
 
 
@@ -347,6 +347,8 @@ def create_chm(dtm, dsm, chm):
 
 def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
+    start = datetime.now()
+    print 'Gap-filling to create %s' % os.path.relpath(fout)
     from scipy.interpolate import griddata
     if len(filenames) == 0:
         raise Exception('No filenames provided!')
@@ -369,11 +371,14 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     imgout = gippy.GeoImage(fout, imgs[0])
     imgout.SetNoData(nodata)
     imgout[0].Write(arr)
+    fout = imgout.Filename()
+    imgout = None
 
     # align and clip
     if site is not None:
-        for t in outputs:
-            warp_image(fout, site, clip=True)
+        warp_image(fout, site, clip=True)
+
+    print 'Completed in %s' % (datetime.now() - start)
 
     return fout
 
