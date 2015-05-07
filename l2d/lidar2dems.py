@@ -220,7 +220,8 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--outdir', help='Output directory', default='./')
         group.add_argument('--suffix', help='Suffix to append to output', default='')
         group.add_argument('-c', '--clip', help='Align and clip to site shapefile', default=False, action='store_true')
-        group.add_argument('-g', '--gapfill', help='Gap-fill using multiple radii outputs and interpolation', default=False, action='store_true')
+        h = 'Gapfill using multiple radii outputs and interpolation (no effect on density outputs)'
+        group.add_argument('-g', '--gapfill', help=h, default=False, action='store_true')
         self.parent_parsers.append(parser)
 
     def add_filter_parser(self):
