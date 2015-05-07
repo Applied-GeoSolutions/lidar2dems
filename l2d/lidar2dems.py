@@ -311,7 +311,7 @@ def create_dem_piecewise(features, demtype, filenames, radius='0.56',
     pieces = []
     for i, feature in enumerate(features):
         suff = suffix + '_%sof%s' % (i + 1, features.size())
-        f = create_dem(demtype, filenames, radius=radius, site=site, 
+        f = create_dem(demtype, filenames, radius=radius, site=feature, 
                        suffix=suff, outdir=outdir, verbose=verbose, **kwargs)
         pieces.append(f)
     fouts = {}
