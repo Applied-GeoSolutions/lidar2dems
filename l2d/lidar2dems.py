@@ -220,6 +220,7 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--outdir', help='Output directory', default='./')
         group.add_argument('--suffix', help='Suffix to append to output', default='')
         group.add_argument('-c', '--clip', help='Align and clip to site shapefile', default=False, action='store_true')
+        group.add_argument('-g', '--gapfill', help='Gap-fill using multiple radii outputs and interpolation', default=False, action='store_true')
         self.parent_parsers.append(parser)
 
     def add_filter_parser(self):
@@ -265,17 +266,19 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
     ext = 'tif'
     if outputs is None:
         outputs = dem_outputs(demtype)
-    exts = ['.%s.%s' % (o, ext) for o in outputs]
+    
+    fouts = {o: bname + '.%s.%s' % (o, ext) for o in outputs}
 
     # run if any output files missing
     run = False
-    for e in exts:
-        if not os.path.exists(bname + e):
+    for f in fouts.values():
+        if len(glob.glob(f[:-3]  + '*')) == 0:
             run = True
-
-    pname = os.path.relpath(bname) + ' [%s]' % (' '.join(exts))
-    print 'Creating %s from %s files' % (pname, len(filenames))
+    pname = os.path.relpath(bname) + ' [%s]' % (' '.join(outputs))
+    print 'dem %s' % pname
     if run:
+        filenames = check_overlap(filenames, site) 
+        print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline
         xml = _xml_base(bname, outputs, radius, site)
         _xml = xml[0]
@@ -289,12 +292,12 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
 
     # align and clip
     if clip and site is not None:
-        for t in outputs:
-            warp_image(bname + '.%s.%s' % (t, ext), site, clip=clip)
+        for o in fouts:
+            fouts[o] = warp_image(fouts[o], site, clip=clip)
 
     print 'Completed %s in %s' % (pname, datetime.now() - start)
 
-    return bname
+    return fouts
 
 
 def create_dem_piecewise(features, demtype, filenames, radius='0.56', 
@@ -304,25 +307,24 @@ def create_dem_piecewise(features, demtype, filenames, radius='0.56',
     # loop through all features
     start = datetime.now()
     ext = 'tif'
-    bnames = []
+    fouts = []
+    pieces = []
     for i, feature in enumerate(features):
-        # TODO - clip each feature to site boundary
-        fnames = check_overlap(filenames, feature)
-        # this is to add a naming scheme so DTMs and DSMs do not get overwritten
         suff = suffix + '_%sof%s' % (i + 1, features.size())
-        f = create_dem(demtype, fnames, radius=radius, site=site, 
+        f = create_dem(demtype, filenames, radius=radius, site=site, 
                        suffix=suff, outdir=outdir, verbose=verbose, **kwargs)
-        bnames.append(f)
+        pieces.append(f)
+
     fouts = []
     # combine pieces together for each output type
     for out in dem_outputs(demtype):
-        fnames = ['%s.%s.%s' % (b, out, ext) for b in bnames]
-        fout = os.path.join(outdir, '%s_r%s%s.%s.vrt' % (demtype, radius, suffix, out))
-        if not os.path.exists(fout):
-            create_vrt(fnames, fout)
+        fnames = [p[out] for p in pieces]
+        fout = os.path.join(outdir, '%s_r%s%s.%s' % (demtype, radius, suffix, out))
+        if len(glob.glob(fout + '.*')) == 0:
+            create_vrt(fnames, fout + '.vrt')
         # align and clip
         if clip and site is not None:
-            fout = warp_image(fout, site, clip=clip)
+            fout = warp_image(fout + '.vrt', site, clip=clip)
         fouts.append(fout)
     print 'Completed piecewise DEM in %s' % (datetime.now() - start)
     return fouts
@@ -343,7 +345,7 @@ def create_chm(dtm, dsm, chm):
     return imgout.Filename()
 
 
-def gap_fill(filenames, fout, site=None, interpolation='nearest', clip=False):
+def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
     from scipy.interpolate import griddata
     if len(filenames) == 0:
@@ -369,9 +371,9 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest', clip=False):
     imgout[0].Write(arr)
 
     # align and clip
-    if clip and site is not None:
+    if site is not None:
         for t in outputs:
-            warp_image(fout, site, clip=clip)
+            warp_image(fout, site, clip=True)
 
     return fout
 
@@ -422,7 +424,7 @@ def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
     # output file
     parts = splitexts(filename)
     fout = parts[0] + suffix + parts[1]
-    # change to tif
+    # change to tif (in case was vrt)
     fout = os.path.splitext(fout)[0] + '.tif'
     if os.path.exists(fout):
         return fout
