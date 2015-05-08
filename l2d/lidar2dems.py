@@ -52,6 +52,13 @@ def _xml_add_pclblock(xml, pclblock):
     return _xml
 
 
+def _xml_add_decimation_filter(xml, step):
+    """ Add decimation Filter element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.decimation")
+    etree.SubElement(fxml, "Option", name="step").text = str(step)
+    return fxml 
+
+
 def _xml_add_classification_filter(xml, classification, equality="equals"):
     """ Add classification Filter element and return """
     fxml = etree.SubElement(xml, "Filter", type="filters.range")
@@ -104,7 +111,7 @@ def _xml_add_scanedge_filter(xml, value):
     return fxml
 
 
-def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None):
+def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None, decimation=None):
     if maxsd is not None:
         xml = _xml_add_maxsd_filter(xml, thresh=maxsd)
     if maxz is not None:
@@ -113,6 +120,8 @@ def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None):
         xml = _xml_add_maxangle_filter(xml, maxangle)
     if scanedge is not None:
         xml = _xml_add_scanedge_filter(xml, scanedge)
+    if decimation is not None:
+        xml = _xml_add_decimation_filter(xml, decimation)
     return xml
 
 
@@ -232,6 +241,8 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
         group.add_argument('--maxz', help='Filter by maximum elevation value', default=None)
         group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
+        h = 'Decimate the points (steps between points, 1 is no pruning'
+        group.add_argument('--decimation', help=h, default=None
         self.parent_parsers.append(parser)
 
 
@@ -259,7 +270,7 @@ def splitexts(filename):
 
 
 def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
-               maxsd=None, maxz=None, maxangle=None, scanedge=None,
+               maxsd=None, maxz=None, maxangle=None, scanedge=None, decimation=None,
                outputs=None, outdir='', suffix='', verbose=False):
     """ Create DEM (points, dsm, dtm) using given radius """
     start = datetime.now()
@@ -282,7 +293,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
         # xml pipeline
         xml = _xml_base(bname, outputs, radius, site)
         _xml = xml[0]
-        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge)
+        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge, decimation)
         if demtype == 'dsm':
             _xml = _xml_add_classification_filter(_xml, 1, equality='max')
         elif demtype == 'dtm':
