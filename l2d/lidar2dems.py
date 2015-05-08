@@ -160,7 +160,7 @@ def run_pipeline(xml, verbose=False):
     if verbose:
         out = os.system(' '.join(cmd))
     else:
-        out = os.system(' '.join(cmd) + ' 2> /dev/null ')
+        out = os.system(' '.join(cmd) + ' > /dev/null 2>&1')
     os.remove(xmlfile)
 
 
