@@ -26,7 +26,7 @@ def main():
     print 'Classifying %s files' % len(args.filenames)
     for i, f in enumerate(args.filenames):
         start = datetime.now()
-        suffix = '_pg_s%s_c%s.las' % (args.slope, args.cellsize)
+        suffix = '_l2d_s%sc%s.las' % (args.slope, args.cellsize)
         fout = os.path.join(args.outdir, os.path.basename(os.path.splitext(f)[0])) + suffix
         if not os.path.exists(fout):
             cmd = "pdal ground -i %s -o %s --slope %s --cellSize %s --classify" % (f, fout, args.slope, args.cellsize)
