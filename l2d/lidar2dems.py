@@ -23,10 +23,15 @@ from datetime import datetime
 
 """XML Functions"""
 
-
-def _xml_base(fout, output, radius, site=None):
-    """ Create initial XML for PDAL pipeline containing a Writer element """
+def _xml_base():
+    """ Create initial XML for PDAL pipeline """
     xml = etree.Element("Pipeline", version="1.0")
+    return xml 
+
+
+def _xml_p2g_base(fout, output, radius, site=None):
+    """ Create initial XML for PDAL pipeline containing a Writer element """
+    xml = _xml_base()
     etree.SubElement(xml, "Writer", type="writers.p2g")
     etree.SubElement(xml[0], "Option", name="grid_dist_x").text = "1.0"
     etree.SubElement(xml[0], "Option", name="grid_dist_y").text = "1.0"
@@ -45,11 +50,30 @@ def _xml_base(fout, output, radius, site=None):
     return xml
 
 
+def _xml_las_base(fout):
+    """ Create initial XML for writing to a LAS file """
+    xml = _xml_base()
+    etree.SubElement(xml, "Writer", type="writers.las")
+    etree.SubElement(xml[0], "Option", name="filename").text = fout
+    return xml
+
+
 def _xml_add_pclblock(xml, pclblock):
     """ Add pclblock Filter element by taking in filename of a JSON file """
     _xml = etree.SubElement(xml, "Filter", type="filters.pclblock")
     etree.SubElement(_xml, "Option", name="filename").text = pclblock
     return _xml
+
+
+def _xml_add_pmf(xml, slope, cellsize):
+    """ Add progressive morphological filter """
+    # create JSON file for performing outlier removal
+    j1 = '{"pipeline": {"name": "PMF","version": 1.0,"filters":'
+    json = j1 + '[{"name": "ProgressiveMorphologicalFilter","setSlope": %s,"setellSize": %s}]}}' % (slope, cellsize)
+    f, fname = tempfile.mkstemp(suffix='.json')
+    os.write(f, json)
+    os.close(f)
+    return _xml_add_pclblock(xml, fname)
 
 
 def _xml_add_decimation_filter(xml, step):
@@ -280,6 +304,28 @@ def splitexts(filename):
     return bname, ext
 
 
+def classify(filenames='', fout='l2d.las', site=None, slope='1.0', cellsize='3.0', decimation=None, verbose=False):
+    """ Classify files and input single las file """
+    start = datetime.now()
+
+    # TODO - check if already exist
+    run = True
+
+    if run:
+        filenames = glob.glob(os.path.join(directory, '*.las') 
+        filenames = check_overlap(filenames, site) 
+        print 'Classifying %s files' % (len(filenames))
+        # xml pipeline
+        xml = _xml_las_base(fout)
+        _xml = xml[0]
+        _xml = _xml_add_pmf(slope, cellsize)
+        if decimation is not None:
+            _xml = _xml_add_decimation_filter(_xml, decimation)
+        _xml_add_readers(_xml, filenames)
+        run_pipeline(xml, verbose=verbose)
+    print 'Completed classification'
+
+
 def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
                site=None, clip=False, decimation=None,
                maxsd=None, maxz=None, maxangle=None, scanedge=None, returnnum=None,
@@ -311,10 +357,10 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
         filenames = check_overlap(filenames, site) 
         print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline
-        xml = _xml_base(bname, outputs, radius, site)
+        xml = _xml_p2g_base(bname, outputs, radius, site)
         _xml = xml[0]
         if decimation is not None:
-            _xml = _xml_add_filters(_xml, decimation)
+            _xml = _xml_add_decimation_filter(_xml, decimation)
         _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge, returnnum)
         if demtype == 'dsm':
             _xml = _xml_add_classification_filter(_xml, 1, equality='max')
