@@ -21,9 +21,17 @@ def main():
 
     # open vectors
     if args.site is not None:
-        args.site = GeoVector(args.site)[0]
+        try:
+            args.site = GeoVector(args.site)[0]
+        except:
+            print 'Error opening %s' % args.site
+            exit(2)
     if args.features is not None:
-        args.features = GeoVector(args.features)
+        try:
+            args.features = GeoVector(args.features)
+        except:
+            print 'Error opening %s' % args.features
+            exit(2)
 
     # make sure outdir exists
     if not os.path.exists(args.outdir):
@@ -42,8 +50,12 @@ def main():
     gapfill = args.gapfill
     del args.gapfill
     fouts = []
-    for rad in radii:
-        fouts.append(func(radius=rad, **vars(args)))
+    try:
+        for rad in radii:
+            fouts.append(func(radius=rad, **vars(args)))
+    except Exception, e:
+        print 'Error creating %s: %s' % (demtype, e)
+        exit(2)
 
     # gap-fill each type of output file
     if gapfill:
