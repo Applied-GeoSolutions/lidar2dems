@@ -242,7 +242,7 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--maxz', help='Filter by maximum elevation value', default=None)
         group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
         h = 'Decimate the points (steps between points, 1 is no pruning'
-        group.add_argument('--decimation', help=h, default=None
+        group.add_argument('--decimation', help=h, default=None)
         self.parent_parsers.append(parser)
 
 
