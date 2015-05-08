@@ -226,7 +226,7 @@ class l2dParser(argparse.ArgumentParser):
         """ Add input arguments to parser """
         parser = self.get_parser()
         group = parser.add_argument_group('input options')
-        group.add_argument('directory', help='Directory of LAS file(s) to process', nargs='+')
+        group.add_argument('directory', help='Directory of LAS file(s) to process')
         group.add_argument('-r', '--radius', help='Create DEM or each provided radius', nargs='*', default=['0.56'])
         group.add_argument('-s', '--site', help='Shapefile of site in same projection as LiDAR', default=None)
         group.add_argument('-f', '--features', help='Process by these features (polygons)', default=None)
@@ -280,7 +280,7 @@ def splitexts(filename):
     return bname, ext
 
 
-def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
+def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
                site=None, clip=False, decimation=None,
                maxsd=None, maxz=None, maxangle=None, scanedge=None, returnnum=None,
                outputs=None, outdir='', suffix='', verbose=False):
@@ -298,10 +298,16 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
     for f in fouts.values():
         if len(glob.glob(f[:-3]  + '*')) == 0:
             run = True
+
     pname = os.path.relpath(bname) + ' [%s]' % (' '.join(outputs))
     if run:
         # find the right files
-        filenames = glob.glob(os.path.join(directory, '_l2d_s%sc%s.las' % ('1.0', '3.0')
+        if demtype == 'density':
+            # any files are ok
+            filenames = glob.glob(os.path.join(directory, '*.las'))
+        else:
+            # only classified files
+            filenames = glob.glob(os.path.join(directory, '_l2d_s%sc%s.las' % (slope, cellsize)))
         filenames = check_overlap(filenames, site) 
         print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline

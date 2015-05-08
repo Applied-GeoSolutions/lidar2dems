@@ -54,7 +54,7 @@ def main():
         for rad in radii:
             fouts.append(func(radius=rad, **vars(args)))
     except Exception, e:
-        print 'Error creating %s: %s' % (demtype, e)
+        print 'Error creating %s: %s' % (args.demtype, e)
         exit(2)
 
     # gap-fill each type of output file
