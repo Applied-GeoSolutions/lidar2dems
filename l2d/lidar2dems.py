@@ -111,7 +111,17 @@ def _xml_add_scanedge_filter(xml, value):
     return fxml
 
 
-def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None, decimation=None):
+def _xml_add_returnnum_filter(xml, value):
+    """ Add ReturnNum Filter element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.range")
+    _xml = etree.SubElement(fxml, "Option", name="dimension")
+    _xml.text = "ReturnNum"
+    _xml = etree.SubElement(_xml, "Options")
+    etree.SubElement(_xml, "Option", name="equals").text = value
+    return fxml
+
+
+def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None, returnnum=None):
     if maxsd is not None:
         xml = _xml_add_maxsd_filter(xml, thresh=maxsd)
     if maxz is not None:
@@ -120,8 +130,8 @@ def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None, d
         xml = _xml_add_maxangle_filter(xml, maxangle)
     if scanedge is not None:
         xml = _xml_add_scanedge_filter(xml, scanedge)
-    if decimation is not None:
-        xml = _xml_add_decimation_filter(xml, decimation)
+    if returnnum is not None:
+        xml = _xml_add_returnnum_filter(xml, returnnum)
     return xml
 
 
@@ -216,7 +226,7 @@ class l2dParser(argparse.ArgumentParser):
         """ Add input arguments to parser """
         parser = self.get_parser()
         group = parser.add_argument_group('input options')
-        group.add_argument('filenames', help='Classified LAS file(s) to process', nargs='+')
+        group.add_argument('directory', help='Directory of LAS file(s) to process', nargs='+')
         group.add_argument('-r', '--radius', help='Create DEM or each provided radius', nargs='*', default=['0.56'])
         group.add_argument('-s', '--site', help='Shapefile of site in same projection as LiDAR', default=None)
         group.add_argument('-f', '--features', help='Process by these features (polygons)', default=None)
@@ -241,6 +251,7 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
         group.add_argument('--maxz', help='Filter by maximum elevation value', default=None)
         group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
+        group.add_argument('--returnnum', help='Filter by return number', default=None)
         h = 'Decimate the points (steps between points, 1 is no pruning'
         group.add_argument('--decimation', help=h, default=None)
         self.parent_parsers.append(parser)
@@ -269,8 +280,9 @@ def splitexts(filename):
     return bname, ext
 
 
-def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
-               maxsd=None, maxz=None, maxangle=None, scanedge=None, decimation=None,
+def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
+               site=None, clip=False, decimation=None,
+               maxsd=None, maxz=None, maxangle=None, scanedge=None, returnnum=None,
                outputs=None, outdir='', suffix='', verbose=False):
     """ Create DEM (points, dsm, dtm) using given radius """
     start = datetime.now()
@@ -288,12 +300,16 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
             run = True
     pname = os.path.relpath(bname) + ' [%s]' % (' '.join(outputs))
     if run:
+        # find the right files
+        filenames = glob.glob(os.path.join(directory, '_l2d_s%sc%s.las' % ('1.0', '3.0')
         filenames = check_overlap(filenames, site) 
         print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline
         xml = _xml_base(bname, outputs, radius, site)
         _xml = xml[0]
-        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge, decimation)
+        if decimation is not None:
+            _xml = _xml_add_filters(_xml, decimation)
+        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge, returnnum)
         if demtype == 'dsm':
             _xml = _xml_add_classification_filter(_xml, 1, equality='max')
         elif demtype == 'dtm':
@@ -311,7 +327,7 @@ def create_dem(demtype, filenames, radius='0.56', site=None, clip=False,
     return fouts
 
 
-def create_dem_piecewise(features, demtype, filenames, radius='0.56', 
+def create_dem_piecewise(features, demtype, radius='0.56', 
                          site=None, clip=False, 
                          outdir='', suffix='', verbose=False, **kwargs):
     """ run create_dem piecemeal (by series of polygons) and combine after """
@@ -322,7 +338,7 @@ def create_dem_piecewise(features, demtype, filenames, radius='0.56',
     pieces = []
     for i, feature in enumerate(features):
         suff = suffix + '_%sof%s' % (i + 1, features.size())
-        f = create_dem(demtype, filenames, radius=radius, site=feature, 
+        f = create_dem(demtype, radius=radius, site=feature, 
                        suffix=suff, outdir=outdir, verbose=verbose, **kwargs)
         pieces.append(f)
     fouts = {}
