@@ -304,26 +304,32 @@ def splitexts(filename):
     return bname, ext
 
 
-def classify(filenames='', fout='l2d.las', site=None, slope='1.0', cellsize='3.0', decimation=None, verbose=False):
-    """ Classify files and input single las file """
+def classify(directory='', fout='l2d.las', site=None, 
+             slope='1.0', cellsize='3.0', decimation=None,
+             outdir='', suffix='', verbose=False):
+    """ Classify files and output single las file """
     start = datetime.now()
 
     # TODO - check if already exist
-    run = True
+    fout = '' if site is None else site.Basename() + '_'
+    fout = os.path.join(outdir, fout + '%sl2d_s%sc%s.las' % (suffix, slope, cellsize))
+    pname = os.path.relpath(fout)
 
-    if run:
-        filenames = glob.glob(os.path.join(directory, '*.las') 
+    if not os.path.exists(fout):
+        filenames = glob.glob(os.path.join(directory, '*.las'))
         filenames = check_overlap(filenames, site) 
-        print 'Classifying %s files' % (len(filenames))
+        print 'Classifying %s files into %s' % (len(filenames), pname)
         # xml pipeline
         xml = _xml_las_base(fout)
         _xml = xml[0]
-        _xml = _xml_add_pmf(slope, cellsize)
+        _xml = _xml_add_pmf(_xml, slope, cellsize)
         if decimation is not None:
             _xml = _xml_add_decimation_filter(_xml, decimation)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
-    print 'Completed classification'
+
+    print 'Completed %s in %s' % (pname, datetime.now() - start)
+    return fout
 
 
 def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
@@ -353,7 +359,7 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
             filenames = glob.glob(os.path.join(directory, '*.las'))
         else:
             # only classified files
-            filenames = glob.glob(os.path.join(directory, '_l2d_s%sc%s.las' % (slope, cellsize)))
+            filenames = glob.glob(os.path.join(directory, '*l2d_s%sc%s*.las' % (slope, cellsize)))
         filenames = check_overlap(filenames, site) 
         print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline
