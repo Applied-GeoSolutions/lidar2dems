@@ -36,7 +36,6 @@ def main():
 
     fouts = []
     for f in args.features:
-        print f['class']
         classify(args.directory, site=f, 
                  slope=args.slope, cellsize=args.cellsize, 
                  outdir=args.outdir, verbose=args.verbose)
