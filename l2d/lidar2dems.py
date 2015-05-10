@@ -331,6 +331,7 @@ def classify(directory='', fout='l2d.las', site=None,
         # xml pipeline
         xml = _xml_las_base(ftmp)
         _xml = xml[0]
+        # problem using PMF in XML
         #_xml = _xml_add_pmf(_xml, slope, cellsize)
         if decimation is not None:
             _xml = _xml_add_decimation_filter(_xml, decimation)
@@ -352,7 +353,8 @@ def classify(directory='', fout='l2d.las', site=None,
             '--cellSize %s' % cellsize,
             '--classify'
         ]
-        subprocess.check_output(cmd)
+        print ' '.join(cmd)
+        os.syste(' '.join(cmd))
 
         # remove merged, unclassified file
         print ftmp
@@ -369,11 +371,11 @@ def find_classified_las(directory='', slope='1.0', cellsize='3.0'):
     return filenames
 
 
-def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
+def create_dem(filenames, demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
                site=None, decimation=None,
                maxsd=None, maxz=None, maxangle=None, returnnum=None,
                products=None, outdir='', suffix='', verbose=False):
-    """ Create DEM (points, dsm, dtm) using given radius """
+    """ Create DEM (points, dsm, dtm) using given radius, align and clip to site if provided """
     start = datetime.now()
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
     ext = 'tif'
@@ -398,6 +400,7 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
             # only classified files
             filenames = find_classified_las(directory, slope, cellsize)
         filenames = check_overlap(filenames, site) 
+
         print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline
         xml = _xml_p2g_base(bname, products, radius, site)
