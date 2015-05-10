@@ -19,6 +19,7 @@ import shutil
 import argparse
 import glob
 from datetime import datetime
+import uuid
 
 
 """XML Functions"""
@@ -145,18 +146,23 @@ def _xml_add_returnnum_filter(xml, value):
     return fxml
 
 
-def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, scanedge=None, returnnum=None):
+def _xml_add_filters(xml, maxsd=None, maxz=None, maxangle=None, returnnum=None):
     if maxsd is not None:
         xml = _xml_add_maxsd_filter(xml, thresh=maxsd)
     if maxz is not None:
         xml = _xml_add_maxz_filter(xml, maxz)
     if maxangle is not None:
         xml = _xml_add_maxangle_filter(xml, maxangle)
-    if scanedge is not None:
-        xml = _xml_add_scanedge_filter(xml, scanedge)
     if returnnum is not None:
         xml = _xml_add_returnnum_filter(xml, returnnum)
     return xml
+
+
+def _xml_add_crop_filter(xml, wkt):
+    """ Add cropping polygon as Filter Element and return """
+    fxml = etree.SubElement(xml, "Filter", type="filters.crop")
+    etree.SubElement(fxml, "Option", name="polygon").text = wkt
+    return fxml  
 
 
 def _xml_add_reader(xml, filename):
@@ -263,7 +269,7 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--outdir', help='Output directory', default='./')
         group.add_argument('--suffix', help='Suffix to append to output', default='')
         group.add_argument('-c', '--clip', help='Align and clip to site shapefile', default=False, action='store_true')
-        h = 'Gapfill using multiple radii outputs and interpolation (no effect on density outputs)'
+        h = 'Gapfill using multiple radii products and interpolation (no effect on density products)'
         group.add_argument('-g', '--gapfill', help=h, default=False, action='store_true')
         self.parent_parsers.append(parser)
 
@@ -274,7 +280,7 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--maxsd', help='Filter outliers with this SD threshold', default=None)
         group.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
         group.add_argument('--maxz', help='Filter by maximum elevation value', default=None)
-        group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
+        #group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
         group.add_argument('--returnnum', help='Filter by return number', default=None)
         h = 'Decimate the points (steps between points, 1 is no pruning'
         group.add_argument('--decimation', help=h, default=None)
@@ -284,14 +290,14 @@ class l2dParser(argparse.ArgumentParser):
 """ Create DEM files """
 
 
-def dem_outputs(demtype):
-    """ Return outputs for this dem type """
-    outs = {
+def dem_products(demtype):
+    """ Return products for this dem type """
+    products = {
         'density': ['den'],
         'dsm': ['den', 'max'],
         'dtm': ['den', 'min', 'max', 'idw']
     }
-    return outs[demtype]
+    return products[demtype]
 
 
 def splitexts(filename):
@@ -310,40 +316,71 @@ def classify(directory='', fout='l2d.las', site=None,
     """ Classify files and output single las file """
     start = datetime.now()
 
-    # TODO - check if already exist
+    # output filename
     fout = '' if site is None else site.Basename() + '_'
-    fout = os.path.join(outdir, fout + '%sl2d_s%sc%s.las' % (suffix, slope, cellsize))
+    fout = os.path.join(os.path.abspath(outdir), fout + '%sl2d_s%sc%s.las' % (suffix, slope, cellsize))
     pname = os.path.relpath(fout)
 
     if not os.path.exists(fout):
         filenames = glob.glob(os.path.join(directory, '*.las'))
         filenames = check_overlap(filenames, site) 
         print 'Classifying %s files into %s' % (len(filenames), pname)
+
+        # first merge into tmp file
+        ftmp = os.path.join(os.path.abspath(outdir), str(uuid.uuid4()) + '.las')
         # xml pipeline
-        xml = _xml_las_base(fout)
+        xml = _xml_las_base(ftmp)
         _xml = xml[0]
-        _xml = _xml_add_pmf(_xml, slope, cellsize)
+        #_xml = _xml_add_pmf(_xml, slope, cellsize)
         if decimation is not None:
             _xml = _xml_add_decimation_filter(_xml, decimation)
+        # need to build PDAL with GEOS
+        #if site is not None:
+        #    wkt = loads(site.WKT()).buffer(10).wkt
+        #    _xml = _xml_add_crop_filter(_xml, wkt)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
+        print 'Created tmp classified file %s in %s' % (ftmp, datetime.now() - start)
+
+        # run pdal ground then remove tmp
+        cmd = [
+            'pdal',
+            'ground',
+            '-i %s' % ftmp,
+            '-o %s' % fout,
+            '--slope %s' % slope,
+            '--cellSize %s' % cellsize,
+            '--classify'
+        ]
+        subprocess.check_output(cmd)
+
+        # remove merged, unclassified file
+        print ftmp
+        #os.remove(ftmp)
 
     print 'Completed %s in %s' % (pname, datetime.now() - start)
     return fout
 
 
+def find_classified_las(directory='', slope='1.0', cellsize='3.0'):
+    """ Locate LAS files matching these classification parameters """
+    filenames = glob.glob(ospath.join(directory, '*l2d_s%sc%s*.las' % (slope, cellsize))) 
+    # TODO - check overlap with site?
+    return filenames
+
+
 def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
-               site=None, clip=False, decimation=None,
-               maxsd=None, maxz=None, maxangle=None, scanedge=None, returnnum=None,
-               outputs=None, outdir='', suffix='', verbose=False):
+               site=None, decimation=None,
+               maxsd=None, maxz=None, maxangle=None, returnnum=None,
+               products=None, outdir='', suffix='', verbose=False):
     """ Create DEM (points, dsm, dtm) using given radius """
     start = datetime.now()
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
     ext = 'tif'
-    if outputs is None:
-        outputs = dem_outputs(demtype)
+    if products is None:
+        products = dem_products(demtype)
     
-    fouts = {o: bname + '.%s.%s' % (o, ext) for o in outputs}
+    fouts = {o: bname + '.%s.%s' % (o, ext) for o in products}
 
     # run if any output files missing
     run = False
@@ -351,7 +388,7 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
         if len(glob.glob(f[:-3]  + '*')) == 0:
             run = True
 
-    pname = os.path.relpath(bname) + ' [%s]' % (' '.join(outputs))
+    pname = os.path.relpath(bname) + ' [%s]' % (' '.join(products))
     if run:
         # find the right files
         if demtype == 'density':
@@ -359,15 +396,15 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
             filenames = glob.glob(os.path.join(directory, '*.las'))
         else:
             # only classified files
-            filenames = glob.glob(os.path.join(directory, '*l2d_s%sc%s*.las' % (slope, cellsize)))
+            filenames = find_classified_las(directory, slope, cellsize)
         filenames = check_overlap(filenames, site) 
         print 'Creating %s from %s files' % (pname, len(filenames))
         # xml pipeline
-        xml = _xml_p2g_base(bname, outputs, radius, site)
+        xml = _xml_p2g_base(bname, products, radius, site)
         _xml = xml[0]
         if decimation is not None:
             _xml = _xml_add_decimation_filter(_xml, decimation)
-        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, scanedge, returnnum)
+        _xml = _xml_add_filters(_xml, maxsd, maxz, maxangle, returnnum)
         if demtype == 'dsm':
             _xml = _xml_add_classification_filter(_xml, 1, equality='max')
         elif demtype == 'dtm':
@@ -375,8 +412,8 @@ def create_dem(demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0'
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
 
-    # align and clip
-    if clip and site is not None:
+    # align and clip all products
+    if site is not None:
         for o in fouts:
             fouts[o] = warp_image(fouts[o], site, clip=clip)
 
@@ -401,7 +438,7 @@ def create_dem_piecewise(features, demtype, radius='0.56',
         pieces.append(f)
     fouts = {}
     # combine pieces together for each output type
-    for out in dem_outputs(demtype):
+    for out in dem_products(demtype):
         fnames = [p[out] for p in pieces]
         fout = os.path.join(outdir, '%s_r%s%s.%s' % (demtype, radius, suffix, out))
         if len(glob.glob(fout + '.*')) == 0:
