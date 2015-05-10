@@ -8,7 +8,7 @@ import os
 import argparse
 import glob
 from datetime import datetime
-from l2d import classify
+from l2d import class_params, classify
 import gippy
 
 
@@ -36,17 +36,15 @@ def main():
 
     fouts = []
     for f in args.features:
+        # get land use class from feature if available
+        try:
+            cls = f['class']
+        except:
+            cls = None
+        params = class_params(cls)
         classify(args.directory, site=f, 
-                 slope=args.slope, cellsize=args.cellsize, 
+                 slope=params[0], cellsize=params[1], 
                  outdir=args.outdir, verbose=args.verbose)
-
-#    for i, f in enumerate(args.filenames):
-        #suffix = '_l2d_s%sc%s.las' % (args.slope, args.cellsize)
-        #fout = os.path.join(args.outdir, os.path.basename(os.path.splitext(f)[0])) + suffix
-#        Dif not os.path.exists(fout):
-            #cmd = "pdal ground -i %s -o %s --slope %s --cellSize %s --classify" % (f, fout, args.slope, args.cellsize)
-            #os.system(cmd)
-            #print 'Classified (%s of %s) %s in %s' % (i + 1, len(args.filenames), f, datetime.now() - start)
 
     print 'Completed in %s' % (datetime.now() - start)
 

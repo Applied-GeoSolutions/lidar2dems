@@ -310,6 +310,13 @@ def splitexts(filename):
     return bname, ext
 
 
+def class_params(cls):
+    """ Get classification parameters based on land classification """
+    slope = '1.0'
+    cellsize = '3.0'
+    return (slope, cellsize)
+
+
 def classify(directory='', fout='l2d.las', site=None, 
              slope='1.0', cellsize='3.0', decimation=None,
              outdir='', suffix='', verbose=False):
@@ -319,12 +326,12 @@ def classify(directory='', fout='l2d.las', site=None,
     # output filename
     fout = '' if site is None else site.Basename() + '_'
     fout = os.path.join(os.path.abspath(outdir), fout + '%sl2d_s%sc%s.las' % (suffix, slope, cellsize))
-    pname = os.path.relpath(fout)
+    prettyname = os.path.relpath(fout)
 
     if not os.path.exists(fout):
         filenames = glob.glob(os.path.join(directory, '*.las'))
         filenames = check_overlap(filenames, site) 
-        print 'Classifying %s files into %s' % (len(filenames), pname)
+        print 'Classifying %s files into %s' % (len(filenames), prettyname)
 
         # first merge into tmp file
         ftmp = os.path.join(os.path.abspath(outdir), str(uuid.uuid4()) + '.las')
@@ -354,13 +361,13 @@ def classify(directory='', fout='l2d.las', site=None,
             '--classify'
         ]
         print ' '.join(cmd)
-        os.syste(' '.join(cmd))
+        os.system(' '.join(cmd))
 
         # remove merged, unclassified file
         print ftmp
         #os.remove(ftmp)
 
-    print 'Completed %s in %s' % (pname, datetime.now() - start)
+    print 'Completed %s in %s' % (prettyname, datetime.now() - start)
     return fout
 
 
@@ -371,37 +378,29 @@ def find_classified_las(directory='', slope='1.0', cellsize='3.0'):
     return filenames
 
 
-def create_dem(filenames, demtype, radius='0.56', directory='', slope='1.0', cellsize='3.0',
-               site=None, decimation=None,
+def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
                maxsd=None, maxz=None, maxangle=None, returnnum=None,
                products=None, outdir='', suffix='', verbose=False):
-    """ Create DEM (points, dsm, dtm) using given radius, align and clip to site if provided """
+    """ Create DEM from collection of LAS files, align and clip to site if provided """
     start = datetime.now()
+    # filename based on demtype, radius, and optional suffix
     bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
     ext = 'tif'
+
+    # products (den, max, etc)
     if products is None:
         products = dem_products(demtype)
-    
     fouts = {o: bname + '.%s.%s' % (o, ext) for o in products}
+    prettyname = os.path.relpath(bname) + ' [%s]' % (' '.join(products))
 
-    # run if any output files missing
+    # run if any products missing (any extension version is ok, i.e. vrt or tif)
     run = False
     for f in fouts.values():
         if len(glob.glob(f[:-3]  + '*')) == 0:
             run = True
 
-    pname = os.path.relpath(bname) + ' [%s]' % (' '.join(products))
     if run:
-        # find the right files
-        if demtype == 'density':
-            # any files are ok
-            filenames = glob.glob(os.path.join(directory, '*.las'))
-        else:
-            # only classified files
-            filenames = find_classified_las(directory, slope, cellsize)
-        filenames = check_overlap(filenames, site) 
-
-        print 'Creating %s from %s files' % (pname, len(filenames))
+        print 'Creating %s from %s files' % (prettyname, len(filenames))
         # xml pipeline
         xml = _xml_p2g_base(bname, products, radius, site)
         _xml = xml[0]
@@ -417,11 +416,10 @@ def create_dem(filenames, demtype, radius='0.56', directory='', slope='1.0', cel
 
     # align and clip all products
     if site is not None:
-        for o in fouts:
-            fouts[o] = warp_image(fouts[o], site, clip=clip)
+        for p in fouts:
+            fouts[p] = warp_image(fouts[p], site, clip=clip)
 
-    print 'Completed %s in %s' % (pname, datetime.now() - start)
-
+    print 'Completed %s in %s' % (prettyname, datetime.now() - start)
     return fouts
 
 
@@ -444,16 +442,33 @@ def create_dem_piecewise(features, demtype, radius='0.56',
     for out in dem_products(demtype):
         fnames = [p[out] for p in pieces]
         fout = os.path.join(outdir, '%s_r%s%s.%s' % (demtype, radius, suffix, out))
-        if len(glob.glob(fout + '.*')) == 0:
-            create_vrt(fnames, fout + '.vrt')
-        # align and clip
-        fout = fout + '.vrt'
-        if clip and site is not None:
-            fout = warp_image(fout, site, clip=clip)
-        fouts[out] = fout
+        fouts[out] = combine(fnames, fout, site=site, verbose=verbose)
+
     print 'Completed piecewise DEM in %s' % (datetime.now() - start)
 
     return fouts
+
+
+def combine(filenames, fout, site=None, overwrite=False, verbose=False):
+    """ Combine filenames into single file and align if given site """
+    if fout[:-4] != '.vrt':
+        fout = fout + '.vrt'
+    if os.path.exists(fout) and not overwrite:
+        return fout
+    cmd = [
+        'gdalbuildvrt',
+        fout,
+    ]
+    if not verbose:
+        cmd.append('-q')
+    cmd.extend(filenames)
+    if site is not None:
+        bounds = get_vector_bounds(site)
+        cmd.append('-te %s' % (' '.join(bounds)))
+    if verbose:
+        print 'Combining %s files into %s' % (len(filenames), fout)
+    os.system(' '.join(cmd))
+    return fout
 
 
 def create_chm(dtm, dsm, chm):

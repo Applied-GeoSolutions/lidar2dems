@@ -37,6 +37,12 @@ def main():
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
+    # loop through features
+    for i, feature in enumerate(args.features): 
+        # classify ? 
+        # get classified las filename
+        las =   
+
     # run piecewise if given processing features
     if args.features is None:
         del args.features
@@ -56,6 +62,7 @@ def main():
     except Exception, e:
         print 'Error creating %s: %s' % (args.demtype, e)
         exit(2)
+
 
     # gap-fill each type of output file
     if gapfill:
