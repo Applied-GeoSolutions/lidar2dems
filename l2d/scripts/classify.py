@@ -16,11 +16,10 @@ def main():
     dhf = argparse.ArgumentDefaultsHelpFormatter
 
     parser = argparse.ArgumentParser(description='Classify LAS file(s)', formatter_class=dhf)
-    parser.add_argument('directory', help='Directory of LAS file(s) to classify')
-    #parser.add_argument('-s', '--site', help='Site to constrain LAS files to', default=None)
-    parser.add_argument('-f', '--features', help='Features to classify by', default=None)
-    parser.add_argument('--slope', help='Slope', default=1.0)
-    parser.add_argument('--cellsize', help='Cell Size', default=3.0)
+    parser.add_argument('lasdir', help='Directory of LAS file(s) to classify')
+    parser.add_argument('-s', '--site', help='Polygon(s) to process', default=None)
+    parser.add_argument('--slope', help='Slope (override)', default=None)
+    parser.add_argument('--cellsize', help='Cell Size (override)', default=None)
     parser.add_argument('--outdir', help='Output directory location', default='./')
     parser.add_argument('-v', '--verbose', help='Print additional info', default=False, action='store_true')
 
@@ -35,16 +34,12 @@ def main():
         args.features = gippy.GeoVector(args.features)
 
     fouts = []
-    for f in args.features:
-        # get land use class from feature if available
-        try:
-            cls = f['class']
-        except:
-            cls = None
-        params = class_params(cls)
-        classify(args.directory, site=f, 
-                 slope=params[0], cellsize=params[1], 
-                 outdir=args.outdir, verbose=args.verbose)
+    for feature in args.site:
+        filenames = find_lasfiles(args.lasdir, site=feature)
+        fout = classify(filenames, site=feature, 
+                        slope=args.slope, cellsize=args.cellsize, 
+                        outdir=args.outdir, verbose=args.verbose)
+        fouts.append(fout)
 
     print 'Completed in %s' % (datetime.now() - start)
 
