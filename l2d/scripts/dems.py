@@ -47,10 +47,11 @@ def main():
         # get classified las filename
         if args.demtype == 'density':
             # find all las files within feature
-            lasfiles = find_lasfiles(args.lasdir, site=feature)
+            lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
         else:
-            # assume single classified las file exists for this feature
-            lasfiles = [glob.glob(os.path.join(args.lasdir, feature.Basename() + '*.las'))[0]]
+            # find classified las files
+            params = class_params(feature)
+            lasfiles = find_lasfiles(args.lasdir, site=feature, slope=params[0], params[1])
         print lasfiles
 
         # pull out the arguments to pass to create_dems
