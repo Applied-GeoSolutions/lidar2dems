@@ -217,7 +217,7 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
     cmd = [
         'pdal',
         'ground',
-        '-i %s' % ftmp,
+        '-i %s' % fin,
         '-o %s' % fout,
         '--slope %s' % slope,
         '--cellSize %s' % cellsize,
@@ -225,7 +225,7 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
     ]
     if verbose:
         print ' '.join(cmd)
-    out = os.command(' '.join(cmd))
+    out = os.system(' '.join(cmd))
     if verbose:
         print out
 
@@ -256,9 +256,14 @@ def splitexts(filename):
 def class_params(feature, slope=None, cellsize=None):
     """ Get classification parameters based on land classification """
     try:
-        cls = feature['class']
-        # TODO - determine parameters based on class
-        return ('1.0', '3.0')
+        # TODO - read in from config file ?
+        params = {
+            '1': (1, 3)     # non-forest, flat
+            '2': (1, 2)     # forest, flat
+            '3': (5, 2)     # non-forest, complex
+            '4': (10, 2)    # forest, complex 
+        }
+        return params[feature['class']]
     except:
         if slope is None:
             slope = '1.0'
@@ -314,7 +319,7 @@ def classify(filenames, site=None,
         #    _xml = _xml_add_crop_filter(_xml, wkt)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
-        print 'Created tmp classified file %s in %s' % (ftmp, datetime.now() - start)
+        print 'Created temp merged las file %s in %s' % (os.path.relpath(ftmp), datetime.now() - start)
 
         run_pdalground(ftmp, fout, slope, cellsize, verbose=verbose)
 
@@ -326,13 +331,27 @@ def classify(filenames, site=None,
     return fout
 
 
+def create_dems(*args, **kwargs):
+    """ Create DEMS for multiple radii """
+    radii = kwargs['radius']
+    del kwargs['radius']
+    fouts = []
+    for rad in radii:
+        fouts.append(create_dem(*args, radius=rad, **kwargs))
+    fnames = {}
+    for product in fouts[0].keys():
+        fnames[product] = [f[product] for f in fouts]     
+    return fnames
+
+
 def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
                maxsd=None, maxz=None, maxangle=None, returnnum=None,
                products=None, outdir='', suffix='', verbose=False):
-    """ Create DEM from collection of LAS files, align and clip to site if provided """
+    """ Create DEM from collection of LAS files """
     start = datetime.now()
     # filename based on demtype, radius, and optional suffix
-    bname = os.path.join(os.path.abspath(outdir), '%s_r%s%s' % (demtype, radius, suffix))
+    bname = '' if site is None else site.Basename() + '_'
+    bname = os.path.join(os.path.abspath(outdir), '%s%s_r%s%s' % (bname, demtype, radius, suffix))
     ext = 'tif'
 
     # products (den, max, etc)
@@ -362,38 +381,7 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
 
-    # align and clip all products
-    if site is not None:
-        for p in fouts:
-            fouts[p] = warp_image(fouts[p], site, clip=clip)
-
     print 'Completed %s in %s' % (prettyname, datetime.now() - start)
-    return fouts
-
-
-def create_dem_piecewise(features, demtype, radius='0.56', 
-                         site=None, clip=False, 
-                         outdir='', suffix='', verbose=False, **kwargs):
-    """ run create_dem piecemeal (by series of polygons) and combine after """
-    # loop through all features
-    start = datetime.now()
-    ext = 'tif'
-    fouts = []
-    pieces = []
-    for i, feature in enumerate(features):
-        suff = suffix + '_%sof%s' % (i + 1, features.size())
-        f = create_dem(demtype, radius=radius, site=feature, 
-                       suffix=suff, outdir=outdir, verbose=verbose, **kwargs)
-        pieces.append(f)
-    fouts = {}
-    # combine pieces together for each output type
-    for out in dem_products(demtype):
-        fnames = [p[out] for p in pieces]
-        fout = os.path.join(outdir, '%s_r%s%s.%s' % (demtype, radius, suffix, out))
-        fouts[out] = combine(fnames, fout, site=site, verbose=verbose)
-
-    print 'Completed piecewise DEM in %s' % (datetime.now() - start)
-
     return fouts
 
 
