@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
+import sys
+
 
 class l2dParser(argparse.ArgumentParser):
     """ Extends argparser parser """
@@ -44,8 +46,7 @@ class l2dParser(argparse.ArgumentParser):
         group = parser.add_argument_group('input options')
         group.add_argument('lasdir', help='Directory of LAS file(s) to process')
         group.add_argument('-r', '--radius', help='Create DEM or each provided radius', nargs='*', default=['0.56'])
-        group.add_argument('-s', '--site', help='Shapefile of site in same projection as LiDAR', default=None)
-        group.add_argument('-f', '--features', help='Process by these features (polygons)', default=None)
+        group.add_argument('-s', '--site', help='Shapefile of site(s) in same projection as LiDAR', default=None)
         group.add_argument('-v', '--verbose', help='Print additional info', default=False, action='store_true')
         self.parent_parsers.append(parser)
 
