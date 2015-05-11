@@ -258,17 +258,17 @@ def class_params(feature, slope=None, cellsize=None):
     try:
         # TODO - read in from config file ?
         params = {
-            '1': (1, 3)     # non-forest, flat
-            '2': (1, 2)     # forest, flat
-            '3': (5, 2)     # non-forest, complex
-            '4': (10, 2)    # forest, complex 
+            '1': (1, 3),    # non-forest, flat
+            '2': (1, 2),    # forest, flat
+            '3': (5, 2),    # non-forest, complex
+            '4': (10, 2),   # forest, complex 
         }
         return params[feature['class']]
     except:
         if slope is None:
-            slope = '1.0'
+            slope = '1'
         if cellsize is None:
-            cellsize = '3.0'
+            cellsize = '3'
     return (slope, cellsize)
 
 
@@ -277,14 +277,14 @@ def class_suffix(slope, cellsize, suffix=''):
     return '%sl2d_s%sc%s.las' % (suffix, slope, cellsize)    
 
 
-def find_lasfiles(lasdir='', site=None, slope=None, cellsize=None):
+def find_lasfiles(lasdir='', site=None, checkoverlap=False, slope=None, cellsize=None):
     """ Locate LAS files within vector or given and/or matching classification parameters """
     if slope is not None and cellsize is not None:
         pattern = class_suffix(slope, cellsize)
     else:
         pattern = '*.las'
     filenames = glob.glob(os.path.join(lasdir, '*.las'))
-    if site is not None:
+    if checkoverlap and site is not None:
         filenames = check_overlap(filenames, site) 
     return filenames
 
