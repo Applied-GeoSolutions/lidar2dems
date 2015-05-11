@@ -8,7 +8,7 @@ import os
 import argparse
 import glob
 from datetime import datetime
-from l2d import class_params, classify
+from l2d import find_lasfiles, classify
 import gippy
 
 
@@ -21,6 +21,8 @@ def main():
     parser.add_argument('--slope', help='Slope (override)', default=None)
     parser.add_argument('--cellsize', help='Cell Size (override)', default=None)
     parser.add_argument('--outdir', help='Output directory location', default='./')
+    h = 'Decimate the points (steps between points, 1 is no pruning'
+    parser.add_argument('--decimation', help=h, default=None)
     parser.add_argument('-v', '--verbose', help='Print additional info', default=False, action='store_true')
 
     args = parser.parse_args()
@@ -30,14 +32,16 @@ def main():
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
-    if args.features is not None:
-        args.features = gippy.GeoVector(args.features)
+    if args.site is not None:
+        site = gippy.GeoVector(args.site)
+    else:
+        site = [None]
 
     fouts = []
-    for feature in args.site:
+    for feature in site:
         filenames = find_lasfiles(args.lasdir, site=feature)
-        fout = classify(filenames, site=feature, 
-                        slope=args.slope, cellsize=args.cellsize, 
+        fout = classify(filenames, site=feature, decimation=args.decimation, 
+                        slope=args.slope, cellsize=args.cellsize,
                         outdir=args.outdir, verbose=args.verbose)
         fouts.append(fout)
 
