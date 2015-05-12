@@ -433,7 +433,6 @@ def combine(filenames, fout, site=None, overwrite=False, verbose=False):
 
 def create_chm(dtm, dsm, chm):
     """ Create CHM from a DTM and DSM - assumes common grid """
-    # TODO - create dems if not created ?
     dtm_img = gippy.GeoImage(dtm)
     dsm_img = gippy.GeoImage(dsm)
     imgout = gippy.GeoImage(chm, dtm_img)
@@ -553,9 +552,9 @@ def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
     if clip:
         cmd.append('-cutline %s' % vector.Filename())
         #cmd.append('-crop_to_cutline')
-        sys.stdout.write('Warping and clipping %s\n' % os.path.relpath(filename))
-    else:
-        sys.stdout.write('Warping %s\n' % os.path.relpath(filename))
+        #sys.stdout.write('Warping and clipping %s\n' % os.path.relpath(filename))
+    #else:
+    #    sys.stdout.write('Warping %s\n' % os.path.relpath(filename))
     #print ' '.join(cmd)
     out = os.system(' '.join(cmd))
     return fout
