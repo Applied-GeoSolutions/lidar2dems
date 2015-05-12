@@ -347,21 +347,25 @@ def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, o
     fouts = fnames
 
     # gapfill all products (except density)
+    _fouts = {}
     if gapfill:
-        _fouts = {}
         for product in fouts.keys():
+            # do not gapfill, but keep product pointing to first radius run
             if product == 'den':
+                _fouts[product] = fouts[product][0]
                 continue
             # output filename
             bname = '' if site is None else site.Basename() + '_'
             fout = os.path.join(outdir, bname + '%s%s.%s.tif' % (demtype, suffix, product))
-            # if not os.path.exists(fout):
-            
-            gap_fill(fouts[product], fout, site=site)
+            if not os.path.exists(fout):
+                gap_fill(fouts[product], fout, site=site)
             _fouts[product] = fout
-        fouts = _fouts
+    else:
+        # only return single filename (first radius run)
+        for product in fouts.keys():
+            _fouts[product] = fouts[product][0]
 
-    return fouts 
+    return _fouts 
 
 
 def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
@@ -423,7 +427,7 @@ def combine(filenames, fout, site=None, overwrite=False, verbose=False):
     cmd = cmd + filenames
     if verbose:
         print 'Combining %s files into %s' % (len(filenames), fout)
-    print ' '.join(cmd)
+    #print ' '.join(cmd)
     #subprocess.check_output(cmd)
     os.system(' '.join(cmd))
     return fout
