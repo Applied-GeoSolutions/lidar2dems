@@ -52,7 +52,10 @@ def main():
     kwargs = {k:vargs[k] for k in vargs if k in keys}
 
     # run if any products are missing
-    run = all([os.path.exists(f) for f in fouts.values()])
+    exists = all([os.path.exists(f) for f in fouts.values()])
+    if exists:
+        print 'Already created %s in %s' % (args.demtype, os.path.relpath(args.outdir))
+        exit(0)
 
     # loop through features
     pieces = []
