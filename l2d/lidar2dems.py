@@ -558,7 +558,7 @@ def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
         sys.stdout.write('Warping and clipping %s\n' % os.path.relpath(filename))
     else:
         sys.stdout.write('Warping %s\n' % os.path.relpath(filename))
-    print ' '.join(cmd)
+    #print ' '.join(cmd)
     out = os.system(' '.join(cmd))
     return fout
 
