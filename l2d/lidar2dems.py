@@ -411,8 +411,6 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
 
 def combine(filenames, fout, site=None, overwrite=False, verbose=False):
     """ Combine filenames into single file and align if given site """
-    if fout[:-4] != '.vrt':
-        fout = fout + '.vrt'
     if os.path.exists(fout) and not overwrite:
         return fout
     cmd = [
