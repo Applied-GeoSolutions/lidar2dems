@@ -179,7 +179,6 @@ def _xml_add_readers(xml, filenames):
         fxml = xml
     for f in filenames:
         _xml_add_reader(fxml, f)
-        _xml_print(fxml)
     return fxml
 
 
@@ -278,15 +277,19 @@ def class_suffix(slope, cellsize, suffix=''):
     return '%sl2d_s%sc%s.las' % (suffix, slope, cellsize)    
 
 
-def find_lasfiles(lasdir='', site=None, checkoverlap=False, slope=None, cellsize=None):
-    """ Locate LAS files within vector or given and/or matching classification parameters """
-    if slope is not None and cellsize is not None:
-        pattern = class_suffix(slope, cellsize)
-    else:
-        pattern = '*.las'
-    filenames = glob.glob(os.path.join(lasdir, pattern))
+def find_lasfiles(lasdir='', site=None, checkoverlap=False):
+    """" Find lasfiles intersecting with site """
+    filenames = glob.glob(os.path.join(lasdir, '*.las'))
     if checkoverlap and site is not None:
-        filenames = check_overlap(filenames, site) 
+        filenames = check_overlap(filenames, site)
+    return filenames
+
+
+def find_lasfile(lasdir='', site=None, params=('1', '3')):
+    """ Locate LAS files within vector or given and/or matching classification parameters """
+    bname = '' if site is None else site.Basename() + '_'
+    pattern = site.Basename() + '_' + class_suffix(params[0], params[1])
+    filenames = glob.glob(os.path.join(lasdir, pattern))
     return filenames
 
 
@@ -332,17 +335,33 @@ def classify(filenames, site=None,
     return fout
 
 
-def create_dems(*args, **kwargs):
-    """ Create DEMS for multiple radii """
-    radii = kwargs['radius']
-    del kwargs['radius']
+def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, outdir='', suffix='', **kwargs):
+    """ Create DEMS for multiple radii, and optionally gapfill """
     fouts = []
-    for rad in radii:
-        fouts.append(create_dem(*args, radius=rad, **kwargs))
+    for rad in radius:
+        fouts.append(create_dem(filenames, demtype, radius=rad, site=site, outdir=outdir, suffix=suffix, **kwargs))
     fnames = {}
+    # convert from list of dicts, to dict of lists
     for product in fouts[0].keys():
         fnames[product] = [f[product] for f in fouts]     
-    return fnames
+    fouts = fnames
+
+    # gapfill all products (except density)
+    if gapfill:
+        _fouts = {}
+        for product in fouts.keys():
+            if product == 'den':
+                continue
+            # output filename
+            bname = '' if site is None else site.Basename() + '_'
+            fout = os.path.join(outdir, bname + '%s%s.%s.tif' % (demtype, suffix, product))
+            # if not os.path.exists(fout):
+            
+            gap_fill(fouts[product], fout, site=site)
+            _fouts[product] = fout
+        fouts = _fouts
+
+    return fouts 
 
 
 def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
@@ -427,8 +446,8 @@ def create_chm(dtm, dsm, chm):
 
 def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
-    start = datetime.now()
     print 'Gap-filling to create %s' % os.path.relpath(fout)
+    start = datetime.now()
     from scipy.interpolate import griddata
     if len(filenames) == 0:
         raise Exception('No filenames provided!')
@@ -531,10 +550,11 @@ def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
         cmd.append('-q')
     if clip:
         cmd.append('-cutline %s' % vector.Filename())
-        cmd.append('-crop_to_cutline')
+        #cmd.append('-crop_to_cutline')
         sys.stdout.write('Warping and clipping %s\n' % os.path.relpath(filename))
     else:
         sys.stdout.write('Warping %s\n' % os.path.relpath(filename))
+    print ' '.join(cmd)
     out = os.system(' '.join(cmd))
     return fout
 
