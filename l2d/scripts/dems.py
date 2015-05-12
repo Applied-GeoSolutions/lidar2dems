@@ -7,7 +7,7 @@ Creates density image of all files
 import os
 from datetime import datetime
 import glob
-from l2d import find_lasfiles, create_dems, gap_fill
+from l2d import *
 from l2d.parsers import l2dParser
 from gippy import GeoVector
 import traceback
@@ -39,68 +39,50 @@ def main():
 
     args.lasdir = os.path.abspath(args.lasdir)
 
-    # loop through features
-    fouts_site = []
+    # the final filenames
     products = dem_products(args.demtype)
     bnames = {p: '%s%s.%s' % (args.demtype, args.suffix, p) for p in products}
+    prefix = '' # if args.site is None else site.Basename() + '_'
+    fouts = {p: os.path.join(args.outdir, '%s%s%s.%s.vrt' % (prefix, args.demtype, args.suffix, p)) for p in products}
+
+    # pull out the arguments to pass to create_dems
+    keys = ['radius', 'decimation', 'maxsd', 'maxz', 'maxangle', 'returnnum', 
+            'outdir', 'suffix', 'verbose']
+    vargs = vars(args)
+    kwargs = {k:vargs[k] for k in vargs if k in keys}
+
+    # run if any products are missing
+    run = all([os.path.exists(f) for f in fouts.values()])
+
+    # loop through features
+    pieces = []
     for feature in site: 
-        # get classified las filename
+        # find appropriate files
         if args.demtype == 'density':
-            # find all las files within feature
             lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
         else:
-            # find classified las files
-            params = class_params(feature)
-            lasfiles = find_lasfiles(args.lasdir, site=feature, slope=params[0], params[1])
-        print lasfiles
-
-        # pull out the arguments to pass to create_dems
-        keys = ['radius', 'decimation', 'maxsd', 'maxz', 'maxangle', 'returnnum', 
-                'outdir', 'suffix', 'verbose']
-        vargs = vars(args)
-        kwargs = {k:vargs[k] for k in vargs if k in keys}
+            lasfiles = find_lasfile(args.lasdir, site=feature, params=class_params(feature))
+        if len(lasfiles) == 0:
+            print 'No valid LAS files found!'
+            exit(2)
 
         # create the dems
         try:
-            fouts = create_dems(lasfiles, args.demtype, site=feature, **kwargs)
-            print fouts
+            pouts = create_dems(lasfiles, args.demtype, site=feature, gapfill=args.gapfill, **kwargs)
         except Exception, e:
             if args.verbose:
                 print traceback.format_exc()
             print 'Error creating %s: %s' % (args.demtype, e)
             exit(2)
 
-        # gap-fill each product (except density)
-        if args.gapfill and args.demtype != 'density':
-            _fouts = {}
-            for product in fouts[0].keys():
-                print product
-                if product == 'den':
-                    continue
-                # input filenames
-                fnames = [f[product] for f in fouts]
-                # output filename
-                bname = if feature is None else feature.Basename() + '_'
-                fout = os.path.join(args.outdir, bname + bnames[product] + '.tif')
-                gap_fill(fnames, fout, site=feature)
-                _fouts[product] = [fout]
-            fouts = _fouts
-
-        print fouts
-
-        fouts_site.append(fouts)
-
-    print fouts_site
+        # NOTE - if gapfill then fouts is dict, otherwise is list of dicts (1 for each radius)
+        pieces.append(pouts)
 
     # combine all polygons into single file and align to site
-    fouts = {}
-    for product in fouts_site[0].keys():
-        fnames = [f[product] for f in fouts_site]
-        fout = os.path.join(args.outdir, '%s%s.%s.tif' % args.demtype, args.suffix, product)
-        combine(fnames, fout, site=site)
-        fouts[product] = fout
-
-    print fouts
+    for product in products:
+        # there will be mult if gapfill False and multiple radii....use 1st one
+        fnames = [piece[product] for piece in pieces]
+        combine(fnames, fouts[product], site=site)
 
     print 'Completed %s (%s) in %s' % (args.demtype, args.outdir, datetime.now() - start0)
 
