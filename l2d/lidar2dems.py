@@ -179,6 +179,7 @@ def _xml_add_readers(xml, filenames):
         fxml = xml
     for f in filenames:
         _xml_add_reader(fxml, f)
+        _xml_print(fxml)
     return fxml
 
 
@@ -283,7 +284,7 @@ def find_lasfiles(lasdir='', site=None, checkoverlap=False, slope=None, cellsize
         pattern = class_suffix(slope, cellsize)
     else:
         pattern = '*.las'
-    filenames = glob.glob(os.path.join(lasdir, '*.las'))
+    filenames = glob.glob(os.path.join(lasdir, pattern))
     if checkoverlap and site is not None:
         filenames = check_overlap(filenames, site) 
     return filenames
@@ -393,16 +394,18 @@ def combine(filenames, fout, site=None, overwrite=False, verbose=False):
         return fout
     cmd = [
         'gdalbuildvrt',
-        fout,
     ]
     if not verbose:
         cmd.append('-q')
-    cmd.extend(filenames)
     if site is not None:
         bounds = get_vector_bounds(site)
-        cmd.append('-te %s' % (' '.join(bounds)))
+        cmd.append('-te %s' % (' '.join(map(str, bounds))))
+    cmd.append(fout) 
+    cmd = cmd + filenames
     if verbose:
         print 'Combining %s files into %s' % (len(filenames), fout)
+    print ' '.join(cmd)
+    #subprocess.check_output(cmd)
     os.system(' '.join(cmd))
     return fout
 
@@ -453,7 +456,10 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest'):
 
     # align and clip
     if site is not None:
-        warp_image(fout, site, clip=True)
+        _fout = warp_image(fout, site, clip=True)
+        if os.path.exists(fout):
+            os.remove(fout)
+            os.rename(_fout, fout)
 
     print 'Completed in %s' % (datetime.now() - start)
 
@@ -647,6 +653,7 @@ def create_vrt(filenames, fout, bounds=None, overviews=False, verbose=False):
     if bounds is not None:
         cmd.append('-te %s' % (' '.join(bounds)))
     print 'Creating VRT %s' % fout
+    
     os.system(' '.join(cmd))
     if overviews:
         print 'Adding overviews'
