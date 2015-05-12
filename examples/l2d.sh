@@ -1,20 +1,31 @@
 #!/bin/bash
 
-# suggested workflow assumes there is a LAS directory with original las files. 
-# Output will be created in subdirectories in current directory
-# Example:
-# $ l2d.sh 32750 211980.0 9751933.0 235745.0 9754300.0
+# script to classify LAS files and generate complete set of density, DSM, DTM, and CHM products
 
-# get bounds and EPSG for this polygon
-EPSG=$1
+d=$1
 
-# run classify on original files
-l2d_classify LAS/*0.las -s 1 -c 3 --outdir Classified_LAS
+site=features.shp
+bsite=${filename%.*}
+lasdir=lasclass
+demdir=dems
 
-# create dems
-#l2d_createdems ClassifiedLAS/*.las --dsm 0.56419 --dtm 0.56419 1.0 1.4142 2.0 2.5 3.0 --bounds $2 $3 $4 $5 --epsg $EPSG
-l2d_createdems ClassifiedLAS/*.las --dsm 0.56419 --dtm 0.56419 1.4142 2.5 3.0 --epsg $EPSG --outdir dems
+echo Creating DEMs for directory $d
 
-# process dems and write output to current directory
-l2d_processdems --indir dems
+echo Creating density image
+l2d_dems density $d/LAS -s $d/$site --outdir $d/$demdir -c
 
+echo Classifying with decimation
+l2d_classify $d/LAS -s $d/$site --outdir $d/$lasdir --deci 10 
+
+echo Creating DSM
+l2d_dems dsm $d/$lasdir -s $d/$site --outdir $d/$demdir --gapfill --maxsd 2.5 --maxangle 19 --maxz 400
+
+echo Creating DTM
+l2d_dems dtm $d/$lasdir -s $d/$site --outdir $d/$demdir --gapfill --radius 0.56 1.41 2.50 3.00 
+    
+echo Creating CHM
+l2d $d/dsm.max.vrt $d/dtm.idw.vrt --fout $d/chm.tif
+
+echo Generating hillshades
+gdaldem hillshade $d/dsm.max.vrt $d/dsm-hillshade.max.tif
+gdaldem hillshade $d/dtm.idw.vrt $d/dtm-hillshade.idw.tif
