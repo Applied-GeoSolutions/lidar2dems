@@ -39,7 +39,7 @@ def main():
 
     fouts = []
     for feature in site:
-        filenames = find_lasfiles(args.lasdir, site=feature)
+        filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
         fout = classify(filenames, site=feature, decimation=args.decimation, 
                         slope=args.slope, cellsize=args.cellsize,
                         outdir=args.outdir, verbose=args.verbose)
