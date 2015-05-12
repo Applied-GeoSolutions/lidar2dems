@@ -12,7 +12,7 @@ demdir=dems
 echo Creating DEMs for directory $d
 
 echo Creating density image
-l2d_dems density $d/LAS -s $d/$site --outdir $d/$demdir -c
+l2d_dems density $d/LAS -s $d/$site --outdir $d/$demdir
 
 echo Classifying with decimation
 l2d_classify $d/LAS -s $d/$site --outdir $d/$lasdir --deci 10 
