@@ -7,6 +7,7 @@ import sys
 from lxml import etree
 import tempfile
 import gippy
+from gippy.algorithms import CookieCutter
 import numpy
 import subprocess
 import json
@@ -476,7 +477,14 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest'):
 
     # align and clip
     if site is not None:
-        _fout = warp_image(fout, site, clip=True)
+        from osgeo import gdal
+        # get resolution
+        ds = gdal.Open(fout, gdal.GA_ReadOnly)
+        gt = ds.GetGeoTransform()
+        ds = None
+        parts = splitexts(fout)
+        _fout = parts[0] + '_clip' + parts[1]
+        CookieCutter(gippy.GeoImages([fout]), site, _fout, gt[1], abs(gt[5]), True)
         if os.path.exists(fout):
             os.remove(fout)
             os.rename(_fout, fout)
