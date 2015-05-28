@@ -1,6 +1,6 @@
 # Site title and subtitle. This is used in _includes/header.html
-title: 'jekyll-docs-template'
-subtitle: 'Painless documentation for your projects'
+title: 'lidar2dems'
+subtitle: 'Utilities to create Digital Terrain Models (DTMs) from LiDAR data'
 
 # if you wish to integrate disqus on pages set your shortname here
 disqus_shortname: ''
