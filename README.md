@@ -1,3 +1,5 @@
+---
+---
 # Architect theme
 
 This is the raw HTML and styles that are used for the *Architect* theme on [GitHub Pages](http://pages.github.com/).
