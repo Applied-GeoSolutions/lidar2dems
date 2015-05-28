@@ -1,3 +1,5 @@
+---
+---
 Further contributions to lidar2dems are very much welcome.  Contributions can be as simple as reporting issues, or can be enhancements and new features to the code.  Here are guidelines and summary for how to contribute. The first step, is to make sure you have a [GitHub account](https://github.com/signup/free) 
 
 ## Filing Issues
