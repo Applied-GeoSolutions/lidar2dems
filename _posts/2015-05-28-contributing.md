@@ -3,6 +3,7 @@ layout: page
 title: "Contributing"
 category: dev
 date: 2015-05-28 15:20:16
+order: 1
 ---
 Further contributions to lidar2dems are very much welcome.  Contributions can be as simple as reporting issue
 s, or can be enhancements and new features to the code.  Here are guidelines and summary for how to contribut
