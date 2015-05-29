@@ -59,3 +59,5 @@ Depending on the version of the LAS file specification used, there are several c
 ## Visualization
 It can be interesting, if not entirely useful, to look at a 3d visualization of the point cloud. While there are some tools to do so, the easiest way is to use the online point cloud visualization tool [plas.io](http://plas.io). The tool is self-explanatory, and is capable of visualizing even large point clouds.
 
+More useful is the ability to look at an image of the point density in terms of points/m^2. The 'l2d_dems density' command is used to generate point density images from unclassified or classified LiDAR data.
+

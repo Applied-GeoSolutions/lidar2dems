@@ -1,13 +1,13 @@
 ---
 layout: page
-title: "Quickstart"
+title: "Concepts"
 category: doc
 date: 2015-05-28 22:36:43
 order: 1
 ---
 
 
-Concepts
+
 
 ## Site shapefile
 
