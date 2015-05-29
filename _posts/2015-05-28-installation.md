@@ -5,10 +5,13 @@ category: doc
 date: 2015-05-28 21:00:45
 ---
 
+The installation of lidar2dems itself is straightforward as it is a set of Python-based command line tools. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
 
-# LiDAR Tools Installation Notes
-## Dependencies
-These are dependencies that are used by many of the programs. Some will have unique dependencies which are specified in the actual package instructions below
+## Installation Notes
+
+### Initial Dependencies
+Many of the dependencies are geospatial libraries and projects that are available in the Ubuntu GIS repository.
+
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
 $ sudo apt-get install git cmake libboost-all-dev libgdal1-dev
