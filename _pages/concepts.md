@@ -1,1 +1,1 @@
-../_posts/2015-05-28-quickstart.md
+../_posts/2015-05-28-concepts.md
