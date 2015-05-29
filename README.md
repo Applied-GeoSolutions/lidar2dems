@@ -1,3 +1,3 @@
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/bruth/jekyll-docs-template/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+Documentation for the lidar2dems project
 
-Read the docs: http://bruth.github.io/jekyll-docs-template
+http://applied-geosolutions.github.io/lidar2dems
