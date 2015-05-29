@@ -13,8 +13,25 @@ order: 1
 
 
 
+## Terrain Types
+There are 4 different types of terrain classifications that are used to optimize the ground classification step. Each polygon within the site shapefile can specifiy it's own terrain type, which will then use appropriate valies for the slope and cell size inputs to the Progressive Morphological Filter (ground classifier in PCL)
+
+    1: Flat Non-forest - Relatively flat region with little to no vegetation (slope 1, cell size 3)
+    2: Flat Forest - Relatively flat region that is forested (slope 1, cell size 2)
+    3: Complex Non-forest - Varied terrain with little to no vegetation (slope 5, cell size 2)
+    4: Complex Forest - Varied terrain that is forested (slope 10, cell size 2)
+
+It is important to note that the main advantage of specifying a region as flat versus complex is pa reduction in processing time, and not in the accuracy of the results. If in doubt of the terrain and processing time is not a concern it is best to use the complex terrain types.
+
+If the site shapefile does not specify the terrain type, default values will be used (slope 1, cell size 3 unless specified at the command line)
+
+## Filters
+The lidar2dems utilities can all take in optional filters that are used to prune out points.
+
 
 ## Interpolation
+
+NOTE - this is obsolete. Currently only nearest neighbor is used.   Keep these notes for potential future enhancements
 For areas without a high resolution auxiliary DEM: The most appropriate interpolation technique is selected based on void size and landform typology, and applied on the data immediately surrounding the hole, using SRTM30 derived points inside the hole should it be of a certain size or greater. The best interpolations methods can be generalised as: Kriging or Inverse Distance Weighting interpolation for small and medium size voids in relatively flat low-lying areas; Spline interpolation for small and medium sized voids in high altitude and dissected terrain; Triangular Irregular Network or Inverse Distance Weighting interpolation for large voids in very flat areas, and an advanced Spline Method (ANUDEM) for large voids in other terrains.
 
 ## Additional Resources
