@@ -3,6 +3,7 @@ layout: page
 title: "Installation"
 category: doc
 date: 2015-05-28 21:00:45
+order: 0
 ---
 
 The installation of lidar2dems itself is straightforward as it is a set of Python-based command line tools. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
