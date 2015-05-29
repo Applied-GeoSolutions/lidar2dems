@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "Installation"
-category: docs
+category: doc
 date: 2015-05-28 21:00:45
 ---
 
