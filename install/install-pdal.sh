@@ -9,9 +9,11 @@ cmake -G "Unix Makefiles" ../
 make
 sudo make install
 
+# Install dependencies
+sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev
+
 # Install PCL
 sudo apt-get purge libpcl-all
-sudo apt-get install libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev
 git clone https://github.com/chambbj/pcl.git
 cd pcl
 git checkout pipeline
