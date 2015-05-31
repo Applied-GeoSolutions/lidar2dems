@@ -30,10 +30,7 @@ Some dependencies are available via repositories, or the Ubuntu GIS repository.
 
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-# required for building and working with Git repositories
-$ sudo apt-get install git cmake
-# these are required for the PDAL and PCL libraries
-$ sudo apt-get install libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev
+$ sudo apt-get install git cmake libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev
 ~~~~
 
 ### Dependencies from source
