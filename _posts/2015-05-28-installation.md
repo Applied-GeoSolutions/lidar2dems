@@ -69,7 +69,10 @@ PDAL Documentation: http://www.pdal.io/docs.html
 
         $ git clone git@github.com:PDAL/PDAL.git pdal
 
-2. Run CMake as above except use these parameters. On nonstandard systems, or other operating systems, the paths to some of the libraries may need to be modified.
+2. Run CMake as above, adding the additional options below to the command line.
         
-        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DPCL_DIR=/usr/share/pcl-1.7 -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON -DLASZIP_INCLUDE_DIR=/usr/local/include
+        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON
 
+
+## Install lidar2dems
+lidar2dems is a pure python library, and is easily installed with the included setup.py script.  
