@@ -8,10 +8,23 @@ order: 0
 
 The installation of lidar2dems itself is straightforward, as it only consists of a Python library and some scripts. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
 
-## Common Notes
+An easy-install.sh script is available in the repository.   Download it from here and run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
 
-### Running CMake
-Many of the programs use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory. Follow the steps below for any source that utilizes cmake for building.
+## Installing Dependencies
+Some of the dependencies can be easily installed via the Ubuntu packaging tool (apt), while others aren't available in such form and must be compiled from the source code.
+
+### Dependencies from packages
+Some dependencies are available via repositories, or the Ubuntu GIS repository.
+
+~~~~
+$ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev
+~~~~
+
+### Dependencies from source
+These are dependencies that must be built from source code, and are available on GitHub.
+
+**Running CMake**: Several of the programs below use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory. Follow the steps below for any source that utilizes cmake for building.
 
 ~~~
 $ cd "projdir"      # "projdir" is the project directory
@@ -22,19 +35,6 @@ $ make
 $ sudo make install
 ~~~
 
-## Installing Dependencies
-Some of the dependencies can be easily installed via the Ubuntu packaging tool (apt), while others aren't available in such form and must be compiled from the source code.
-
-### Dependencies from packages
-Some dependencies are available via repositories, or the Ubuntu GIS repository.
-
-~~~~
-$ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git cmake libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev
-~~~~
-
-### Dependencies from source
-These are dependencies that must be built from source code, and are available on GitHub.
 
 #### LASzip
 LASzip is used by many other LiDAR software packages to support compressed LAS files. It is not needed if you are using LAS files, however since it installs easily it is best to install now, so that PDAL can be built with LASzip support.
