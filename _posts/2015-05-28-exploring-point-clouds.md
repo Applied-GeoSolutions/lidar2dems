@@ -57,7 +57,11 @@ Depending on the version of the LAS file specification used, there are several c
 - ScanAngleRank - This is the angle off nadir for the point, in degrees, truncated to an integer. Most often in the range of -20 to 20 degrees.
 
 ## Visualization
-It can be interesting, if not entirely useful, to look at a 3d visualization of the point cloud. While there are some tools to do so, the easiest way is to use the online point cloud visualization tool [plas.io](http://plas.io). The tool is self-explanatory, and is capable of visualizing even large point clouds.
+It can be interesting to look at a 3d visualization of the point cloud. While there are some tools to do so, the easiest way is to use the online point cloud visualization tool [plas.io](http://plas.io). The tool is self-explanatory, and is capable of visualizing even large point clouds.  It can be useful for an initial inspection of LiDAR data, to see if there are any potential problems reading, or visible errors within the data.
 
-More useful is the ability to look at an image of the point density in terms of points/m^2. The 'l2d_dems density' command is used to generate point density images from unclassified or classified LiDAR data.
+![point cloud in plas.io](/lidar2dems/assets/plas.png)
+
+Also useful is the ability to look at an image of the point density in terms of points/m^2. The 'l2d_dems density' command is used to generate point density images from unclassified or classified LiDAR data. A good initial step is to create a density image of the data, then use that image in a GIS program where polygons can be drawn to select an area of interest that is completely covered with data.
+
+![density image](/lidar2dems/assets/density.png)
 
