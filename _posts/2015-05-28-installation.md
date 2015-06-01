@@ -21,7 +21,7 @@ Some of the dependencies can be easily installed via the Ubuntu packaing tool fr
 
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0
+$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal
 ~~~~
 
 ### Dependencies from source
