@@ -25,6 +25,7 @@ Now with the site shapefile in hand, the LiDAR can be classified according to te
 This will create classified las files in the lasclass/ directory, one file for each polygon in the site file, as shown below:
 
 ~~~
+$ ls lasclass/
 features-0_l2d_s1c3.las   features-13_l2d_s1c3.las  features-17_l2d_s1c2.las  features-3_l2d_s1c3.las  features-7_l2d_s1c2.las
 features-10_l2d_s1c2.las  features-14_l2d_s1c2.las  features-18_l2d_s1c3.las  features-4_l2d_s1c3.las  features-7_l2d_s1c3.las
 features-11_l2d_s1c2.las  features-15_l2d_s1c3.las  features-1_l2d_s1c3.las   features-5_l2d_s1c2.las  features-8_l2d_s1c3.las
