@@ -46,9 +46,9 @@ dtm.den.vrt  dtm.idw.vrt  dtm.max.vrt  dtm.min.vrt
 ~~~
 
 ####Density image
-~[point density of DSM](/lidar2dems/assets/dtm-1.png)
+![point density of DSM](/lidar2dems/assets/dtm-1.png)
 
 ####DTM (idw) image
-~[DTM (idw) image](/lidar2dems/assets/dtm-2.png)
+![DTM (idw) image](/lidar2dems/assets/dtm-2.png)
 
 

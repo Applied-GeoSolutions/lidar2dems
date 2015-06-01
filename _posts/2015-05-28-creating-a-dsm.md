@@ -44,7 +44,7 @@ dsm.den.vrt  dsm.max.vrt
 ~~~
 
 ####Density image
-~[point density of DSM](/lidar2dems/assets/dsm-1.png)
+![point density of DSM](/lidar2dems/assets/dsm-1.png)
 
 ####DSM image
-~[DSM image](/lidar2dems/assets/dsm-2.png)
+![DSM image](/lidar2dems/assets/dsm-2.png)
