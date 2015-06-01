@@ -20,16 +20,15 @@ Currently only LAS LiDAR files are supported. However, lidar2dems can handle any
 * l2d_dems - generate images of point density, a Digital Terrain Model (DTM), or a Digital Surface Model (DSM)
 * l2d_chm - generate image of a Canopy Height Model (CHM) given a DTM and DSM 
 
+####Funding
+
+lidar2dems was funded by [Applied Geosolutions, LLC](http://www.appliedgeosolutions.com), under a NASA grant (#NNX13AP88G). If you have questions about this project please email [oss@appliedgeosolutions.com](mailto:oss@appliedgeosolutions.com)
 
 ####Authors and Contributors
 
 * [Matthew Hanson](http://github.com/matthewhanson), matt.a.hanson@gmail.com
 * Frankie Sullivan
 * Steve Hagen
-
-Funding:
-	[Applied Geosolutions, LLC](http://www.appliedgeosolutions.com), oss@appliedgeosolutions.com
-	 via NASA Grant #NNX13AP88G
 
 See the [lidar2dems GitHub page](http://github.com/Applied-GeoSolutions/lidar2dems) for the source and issue tracker.
 
