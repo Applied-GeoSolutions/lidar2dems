@@ -4,16 +4,15 @@ The lidar2dems project is a collection open-source (FreeBSD license) command lin
 
 See the [lidar2dems documentation](http://applied-geosolutions.github.io/lidar2dems/) for complete description, usage, and tutorial
 
+####Funding
+
+lidar2dems was funded by [Applied Geosolutions, LLC](http://www.appliedgeosolutions.com), under a NASA grant (#NNX13AP88G). If you have questions about this project please email [oss@appliedgeosolutions.com](mailto:oss@appliedgeosolutions.com)
+
 ####Authors and Contributors
 
 * [Matthew Hanson](http://github.com/matthewhanson), matt.a.hanson@gmail.com
 * Frankie Sullivan
 * Steve Hagen
-
-####Funding:
-	[Applied Geosolutions, LLC](http://www.appliedgeosolutions.com), oss@appliedgeosolutions.com
-
-	 via NASA Grant #NNX13AP88G
 
 ####License (FreeBSD)
 
