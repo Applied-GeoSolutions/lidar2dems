@@ -9,7 +9,7 @@ order: 0
 The installation of lidar2dems itself is straightforward, as it only consists of a Python library and some scripts. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
 
 ## Easy Install
-For Ubuntu machines, save the [easy-install.sh](_includes/easy-install.sh) script run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
+For Ubuntu machines, save the [easy-install.sh](/_includes/easy-install.sh) script run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
 
 The easy-install script installs all the necessary dependencies that are available from repositories. It also downloads the source for other packages, compiles, and installs them. Use the easy-install.sh script to customize for your own machine. 
 
