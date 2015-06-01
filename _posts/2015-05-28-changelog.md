@@ -6,5 +6,5 @@ date: 2015-05-28 22:28:09
 order: 2
 ---
 
-v0.2.0:
+v1.0.0:
 - Initial public release
