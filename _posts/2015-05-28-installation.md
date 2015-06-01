@@ -57,11 +57,8 @@ Points2Grid is used by PDAL to create rasters from point clouds using a local gr
 
 2. Run CMake steps as above
 
-###Installation:
-1. Install PCL with the provided script
-
-        $ scripts/pcl.sh
-
+#### PCL:
+Install PCL with this [install-pcl.sh](/lidar2dems/assets/install-pcl.sh) script
 
 #### PDAL
 PDAL is library for conversion and filtering of LiDAR data. It is under very active development and has features particularly well suited to batch processing.  It can also incorporate PCL for doing advanced algorithms on point clouds.
