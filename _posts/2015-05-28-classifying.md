@@ -20,7 +20,7 @@ The created shapefile should use the same SRS as the LiDAR data.  Additionally, 
 
 Now with the site shapefile (called features.shp) in hand, the LiDAR can be classified according to terrain type.  Call the l2d_classify utility with the shapefile:
 
-	$ l2d_classify las/ -s site.shp --outdir lasclass
+	$ l2d_classify las/ -s features.shp --outdir lasclass
 
 This will create classified las files in the lasclass/ directory, one file for each polygon in the site file, as shown below:
 
