@@ -21,6 +21,8 @@ Currently only LAS LiDAR files are supported. However, lidar2dems can handle any
 * l2d_chm - generate image of a Canopy Height Model (CHM) given a DTM and DSM 
 
 
+See the [lidar2dems GitHub page](http://github.com/Applied-GeoSolutions/lidar2dems) for the source code.
+
 Author: [Matthew Hanson](http://github.com/matthewhanson)
 
 Funded by: [Applied Geosolutions](http://www.appliedgeosolutions.com)
