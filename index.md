@@ -22,9 +22,12 @@ Currently only LAS LiDAR files are supported. However, lidar2dems can handle any
 
 
 Author: [Matthew Hanson](http://github.com/matthewhanson)
+
 Contributors: Frankie Sullivan, Steve Hagen
+
 Copyright: [Applied Geosolutions, LLC](http://www.appliedgeosolutions.com)
+
 Funding: NASA
 
-See the [lidar2dems GitHub page](http://github.com/Applied-GeoSolutions/lidar2dems) for the source code.
+See the [lidar2dems GitHub page](http://github.com/Applied-GeoSolutions/lidar2dems) for the source and issue tracker.
 
