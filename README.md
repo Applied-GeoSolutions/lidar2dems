@@ -13,6 +13,7 @@ lidar2dems was funded by [Applied Geosolutions, LLC](http://www.appliedgeosoluti
 * [Matthew Hanson](http://github.com/matthewhanson), matt.a.hanson@gmail.com
 * Frankie Sullivan
 * Steve Hagen
+* Ian Cooke
 
 ####License (FreeBSD)
 
