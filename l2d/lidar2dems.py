@@ -11,7 +11,7 @@ from gippy.algorithms import CookieCutter
 import numpy
 import subprocess
 import json
-import ogr
+from osgeo import ogr
 from math import floor, ceil
 from shapely.geometry import box
 from shapely.wkt import loads
