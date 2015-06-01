@@ -14,8 +14,13 @@ A Digital Elevation Model (DEM) is the generic name for any raster data containi
 
 Currently only LAS LiDAR files are supported. However, lidar2dems can handle any number of input point clouds for a given region of interest, be they tiles, swaths, or any arbitrary footprint. A region of interest is defined by a shapefile, called a 'site' file, which must also be in the same reference system as the LAS file(s). Points can be filteres with a variety of options, and resulting DEMs can be gap-filled.
 
-The lidar2dems utilities are:
+####lidar2dems Utilities
 
 * l2d_classify - classify points (into ground and non-ground) in a collection of LAS files
 * l2d_dems - generate images of point density, a Digital Terrain Model (DTM), or a Digital Surface Model (DSM)
 * l2d_chm - generate image of a Canopy Height Model (CHM) given a DTM and DSM 
+
+
+Author: [Matthew Hanson](http://github.com/matthewhanson)
+
+Funded by: [Applied Geosolutions](http://www.appliedgeosolutions.com)
