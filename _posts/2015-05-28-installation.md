@@ -8,21 +8,24 @@ order: 0
 
 The installation of lidar2dems itself is straightforward, as it only consists of a Python library and some scripts. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
 
-An easy-install.sh script is available in the repository.   Download it from here and run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
+## Easy Install
+For Ubuntu machines, save the [easy-install.sh](_includes/easy-install.sh) script run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
 
-## Installing Dependencies
-Some of the dependencies can be easily installed via the Ubuntu packaging tool (apt), while others aren't available in such form and must be compiled from the source code.
+The easy-install script installs all the necessary dependencies that are available from repositories. It also downloads the source for other packages, compiles, and installs them. Use the easy-install.sh script to customize for your own machine. 
+
+## Manual Install
 
 ### Dependencies from packages
 Some dependencies are available via repositories, or the Ubuntu GIS repository.
+Some of the dependencies can be easily installed via the Ubuntu packaing tool from the main repositories or the Ubuntu GIS repository
 
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev
+$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0
 ~~~~
 
 ### Dependencies from source
-These are dependencies that must be built from source code, and are available on GitHub.
+These are dependencies that must be built from source code, and are available on GitHub., while others aren't available in such form and must be compiled from the source code.
 
 **Running CMake**: Several of the programs below use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory. Follow the steps below for any source that utilizes cmake for building.
 
@@ -74,5 +77,25 @@ PDAL Documentation: http://www.pdal.io/docs.html
         $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON
 
 
-## Install lidar2dems
+#### GIPPY
+GIPPY is a geospatial raster processing library, used for clipping and masking the images, as well as creating the Canopy Height Model.
+
+1. Clone repository
+
+	$ git clone https://github.com:gipit/gippy.git
+
+2. Run setup
+
+	$ cd gippy; sudo ./setup.py install	
+
+
+### Install lidar2dems
 lidar2dems is a pure python library, and is easily installed with the included setup.py script.  
+
+1. Clone repository
+
+	$ git clone https://github.com:Applied-GeoSolutions/lidar2dems.git
+
+2. Run setup
+	
+	$ cd lidar2dems; sudo ./setup.py install
