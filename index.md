@@ -4,7 +4,7 @@ title: "lidar2dems"
 ---
 
 #lidar2dems 
-The lidar2dems project is a collection open-source command line utilities for supporting the easy creation of Digital Terrain Models (DTMs) from LiDAR data. lidar2dems uses the PDAL library (and associated dependencies) for doing the actual point processing and gridding of point clouds into raster data.
+The lidar2dems project is a collection open-source (FreeBSD license) command line utilities for supporting the easy creation of Digital Terrain Models (DTMs) from LiDAR data. lidar2dems uses the PDAL library (and associated dependencies) for doing the actual point processing and gridding of point clouds into raster data.
 
 A Digital Elevation Model (DEM) is the generic name for any raster data containing elevation data. There are 3 types of DEMs that lidar2dems can generate:
 
@@ -25,9 +25,7 @@ Author: [Matthew Hanson](http://github.com/matthewhanson)
 
 Contributors: Frankie Sullivan, Steve Hagen
 
-Copyright: [Applied Geosolutions, LLC](http://www.appliedgeosolutions.com)
-
-Funding: NASA
+Funding: [Applied Geosolutions, LLC](http://www.appliedgeosolutions.com) via NASA Grant #NNX13AP88G
 
 See the [lidar2dems GitHub page](http://github.com/Applied-GeoSolutions/lidar2dems) for the source and issue tracker.
 
