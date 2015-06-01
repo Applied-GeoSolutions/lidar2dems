@@ -34,7 +34,7 @@ from os import path, remove
 
 from collections import OrderedDict
 
-from lidar2dems import get_bounding_box
+from l2d import get_bounding_box
 from fiona import collection
 
 _polygon_template = {
