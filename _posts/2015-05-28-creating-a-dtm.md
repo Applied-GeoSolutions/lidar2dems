@@ -20,7 +20,24 @@ features-0_dtm_r0.56.max.tif  features-0_dtm_r1.41.max.tif  features-0_dtm_r2.50
 features-0_dtm_r0.56.min.tif  features-0_dtm_r1.41.min.tif  features-0_dtm_r2.50.min.tif  features-0_dtm_r3.00.min.tif
 ~~~
 
-Because the --gapfill switch was provided, in addition to the set of images for the polygons, a gapfilled version for each polygon is created. Point density images are never gapfilled.
+Looking at the 5th polygon (features-4), it can be seen how increasing the radius fills the gaps.
+
+####radius = 0.56
+![DTM with radius 0.56](/lidar2dems/assets/dtm-1.png)
+
+####radius = 1.41
+![DTM with radius 1.41](/lidar2dems/assets/dtm-2.png)
+
+####radius = 2.50
+![DTM with radius 2.50](/lidar2dems/assets/dtm-3.png)
+
+####radius = 3.00 
+![DTM with radius 3.00](/lidar2dems/assets/dtm-4.png)
+
+Because the --gapfill switch was provided, the different radius versions are used to gapfill (followed by nearest neighbor).  Below is the image for the 5th polygon, which has also been clipped to the actual area of the polygon (the images above include points in tiles that were included, but fell outside the polygon). 
+
+####Gap-filled
+![Gap-filled DTM](/lidar2dems/assets/dtm-5.png)
 
 ~~~
 $ ls dems/features*dtm.*.tif
@@ -38,7 +55,7 @@ features-12_dtm.max.tif  features-16_dtm.max.tif  features-2_dtm.max.tif   featu
 features-12_dtm.min.tif  features-16_dtm.min.tif  features-2_dtm.min.tif   features-6_dtm.min.tif
 ~~~
 
-Finally, l2d_dems creates a merged VRT file using all of the individual polygons for both the maximum and the density products, which can then be viewed in QGIS or any other GIS program that supports GDAL file formats.
+Finally, l2d_dems creates a merged VRT file using all of the individual polygons for both the maximum and the density products, which can then be viewed in QGIS or any other GIS program that supports GDAL file formats. The min and max versions look identical to idw within a screenshot, as the differences are very slight.
 
 ~~~
 $ ls dems/dtm*
@@ -46,9 +63,9 @@ dtm.den.vrt  dtm.idw.vrt  dtm.max.vrt  dtm.min.vrt
 ~~~
 
 ####Density image
-![point density of DSM](/lidar2dems/assets/dtm-1.png)
+![point density of DSM](/lidar2dems/assets/dtm-6.png)
 
 ####DTM (idw) image
-![DTM (idw) image](/lidar2dems/assets/dtm-2.png)
+![DTM (idw) image](/lidar2dems/assets/dtm-7.png)
 
 
