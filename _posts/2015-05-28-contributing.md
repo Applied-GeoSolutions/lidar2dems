@@ -9,7 +9,7 @@ Further contributions to lidar2dems are very much welcome.  Contributions can be
 
 ## Filing Issues
 * Look through the existing issues to see if a similar one already exists.
-* If one exists, add any new information about your specific case, if not adequately covered.j
+* If one exists, add any new information about your specific case, if not adequately covered.
 * If one does not exist, submit a new ticket for the issue.
   * Clearly describe the issue including steps to reproduce when it is a bug.
   * Make sure you fill in the earliest version that you know has the issue.

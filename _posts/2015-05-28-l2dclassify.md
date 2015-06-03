@@ -43,7 +43,7 @@ features-11_l2d_s1c2.las  features-15_l2d_s1c3.las  features-1_l2d_s1c3.las   fe
 features-12_l2d_s1c3.las  features-16_l2d_s1c2.las  features-2_l2d_s1c3.las   features-6_l2d_s1c2.las  features-9_l2d_s1c3.las
 ~~~
 
-The classification process is the most time consuming of the entire lidar2dems workflow.  To speed up classification, but generate lower density classified data, use the decimation option. This will prune the total number of points as discussed in [Concepts](concepts).
+The classification process is the most time consuming of the entire lidar2dems workflow.  Optional filters may be used to help speed up classification but should be used with caution because of trade-offs between processing time and product quality. For example, decimation will reduce processing time, but will prune the total number of points as discussed in [Concepts](concepts), which may or may not result in acceptable DEM products.
 
 If a site file is not provided, all of the tiles will be merged together, classified, and output as a single las file. 
 

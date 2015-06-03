@@ -6,11 +6,11 @@ date: 2015-05-28 22:38:52
 order: 3
 ---
 
-With a directory of classified las files, a DSM can now be generated.  A DSM represents the top surface elevation, which could be trees or buildings. LiDAR data can contain outliers, points reflecting off birds or other obstructions, therefore it is a good idea to filter the data.  In this case any points that deivate more than 2.5 standard deviations from the local mean, were collected at greater than 20 degree off-nadir, and points greater than 400m are filtered out.
+With a directory of classified las files, a DSM can now be generated.  A DSM represents the top surface elevation, which could be trees or buildings. LiDAR data can contain outliers, points reflecting off birds or other obstructions, therefore it is recommended to filter the data.  In this case any points that deivate more than 2.5 standard deviations from the local mean, were collected at greater than 20 degree off-nadir, and points greater than 400m are filtered out.
 
 	$ l2d_dems dsm lasclass/ -s features.shp --outdir dems --maxsd 2.5 --maxz 400 --maxangle 20 --gapfill
 
-This will create a single set of DSM files, one for each polygon in the site file. The DSM will be use the maximum point within each gridding radius of 0.56 (the default). A set of density images (.den.tif) and maximum images (.max.tif) will be made.
+This will create a single set of DSM files, one for each polygon in the site file. DSM pixels are populated with the maximum elevation return within each cell (using the default radius of 0.56). A set of density images (.den.tif) and maximum images (.max.tif) will be made.
 
 ~~~
 $ ls dems/features*dsm*r0.56*

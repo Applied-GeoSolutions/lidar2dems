@@ -9,9 +9,9 @@ order: 0
 The installation of lidar2dems itself is straightforward, as it only consists of a Python library and some scripts. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
 
 ## Easy Install
-For Ubuntu machines, save the [easy-install.sh](/lidar2dems/assets/easy-install.sh) script run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
+For Ubuntu machines, save the [easy-install.sh](/lidar2dems/assets/easy-install.sh) script and run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
 
-The easy-install script installs all the necessary dependencies that are available from repositories. It also downloads the source for other packages, compiles, and installs them. Use the easy-install.sh script to customize for your own machine. 
+The easy-install script installs all the necessary dependencies that are available from repositories. It also downloads the source for other packages, compiles, and installs them. Modify the easy-install.sh script to customize installation for your own machine. 
 
 ## Manual Install
 
@@ -25,7 +25,7 @@ $ sudo apt-get install git cmake g++ libgeos libboost-all-dev libgdal1-dev libei
 ~~~~
 
 ### Dependencies from source
-These are dependencies that must be built from source code, and are available on GitHub., while others aren't available in such form and must be compiled from the source code.
+These are dependencies that must be built from source code, and are available on GitHub., while others are not available in such form and must be compiled from the source code.
 
 **Running CMake**: Several of the programs below use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory. Follow the steps below for any source that utilizes cmake for building.
 
