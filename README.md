@@ -6,14 +6,14 @@ See the [lidar2dems documentation](http://applied-geosolutions.github.io/lidar2d
 
 ####Funding
 
-lidar2dems was funded by [Applied Geosolutions, LLC](http://www.appliedgeosolutions.com), under a NASA grant (#NNX13AP88G). If you have questions about this project please email [oss@appliedgeosolutions.com](mailto:oss@appliedgeosolutions.com)
+lidar2dems was created by Applied GeoSolutions, LLC and the University of New Hampshire as part of a NASA-funded Carbon Monitoring System Project (NASA grant #NNX13AP88G; PI Stephen Hagen). In this project, Applied GeoSolutions and project partners are working with the government of Indonesia to improve forest monitoring in Kalimantan by composing detailed, high resolution maps of forest carbon. If you have questions about this project please email [oss@appliedgeosolutions.com](mailto:oss@appliedgeosolutions.com)
 
 ####Authors and Contributors
 
 * [Matthew Hanson](http://github.com/matthewhanson), matt.a.hanson@gmail.com
-* Frankie Sullivan
-* Steve Hagen
-* Ian Cooke
+* Frankie Sullivan, franklin.sullivan@unh.edu
+* Steve Hagen, shagen@appliedgeosolutions.com
+* Ian Cooke, icooke@appliedgeosolutions.com
 
 ####License (FreeBSD)
 
