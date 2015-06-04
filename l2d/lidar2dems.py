@@ -347,9 +347,9 @@ def classify(filenames, site=None,
         if decimation is not None:
             _xml = _xml_add_decimation_filter(_xml, decimation)
         # need to build PDAL with GEOS
-        if site is not None:
-            wkt = loads(site.WKT()).buffer(10).wkt
-            _xml = _xml_add_crop_filter(_xml, wkt)
+        #if site is not None:
+        #    wkt = loads(site.WKT()).buffer(10).wkt
+        #    _xml = _xml_add_crop_filter(_xml, wkt)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
         print 'Created temp merged las file %s in %s' % (os.path.relpath(ftmp), datetime.now() - start)
