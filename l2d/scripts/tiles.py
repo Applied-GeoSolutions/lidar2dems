@@ -130,7 +130,7 @@ def test(leave_shp, overwrite):
     print('test shp: {}'.format(shp))
 
 
-if __name__ == '__main__':
+def main():
     import argparse
     parser = argparse.ArgumentParser(
         prog='lasdir2shp',
@@ -162,3 +162,7 @@ if __name__ == '__main__':
             shapename=args.shapename,
             overwrite=args.overwrite,
         )
+
+
+if __name__ == '__main__':
+    main()

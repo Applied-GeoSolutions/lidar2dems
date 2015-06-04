@@ -54,6 +54,6 @@ setup(
     author_email='matt.a.hanson@gmail.com',
     license='FreeBSD copyright AppliedGeosolutions LLC',
     packages=['l2d', 'l2d.scripts'],
-    install_requires=['gippy', 'lxml', 'shapely', 'gdal'],
+    install_requires=['gippy', 'lxml', 'shapely', 'gdal', 'fiona'],
     entry_points={'console_scripts': scripts}
 )
