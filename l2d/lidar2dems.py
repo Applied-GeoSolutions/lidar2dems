@@ -438,7 +438,7 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
     return fouts
 
 
-def combine(filenames, fout, site=None, overwrite=False, verbose=False):
+def combine(filenames, fout, site=[None], overwrite=False, verbose=False):
     """ Combine filenames into single file and align if given site """
     if os.path.exists(fout) and not overwrite:
         return fout
@@ -447,7 +447,7 @@ def combine(filenames, fout, site=None, overwrite=False, verbose=False):
     ]
     if not verbose:
         cmd.append('-q')
-    if site is not None:
+    if site[0] is not None:
         bounds = get_vector_bounds(site)
         cmd.append('-te %s' % (' '.join(map(str, bounds))))
     cmd.append(fout) 
