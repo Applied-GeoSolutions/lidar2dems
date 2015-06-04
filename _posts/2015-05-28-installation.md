@@ -83,7 +83,7 @@ GIPPY is a geospatial raster processing library, used for clipping and masking t
 
 2. Run setup
 
-	$ cd gippy; sudo ./setup.py install	
+	$ cd gippy; git checkout 0.3.3; sudo ./setup.py install	
 
 
 ### Install lidar2dems
