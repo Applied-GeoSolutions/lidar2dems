@@ -2,17 +2,17 @@
 
 echo Installing dependencies
 sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev
+sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal python-scipy libxslt1-dev
 
 echo Installing LASzip
 git clone https://github.com/LASzip/LASzip.git
 cd LASzip; mkdir build; cd build; cmake -G "Unix Makefiles" ../
-make; sudo make install; cd ..
+make; sudo make install; cd ../..
 
 echo Installing Points2Grid
 git clone https://github.com/CRREL/points2grid.git
 cd points2grid; mkdir build; cd build; cmake -G "Unix Makefiles" ../
-make; sudo make install; cd ..
+make; sudo make install; cd ../..
 
 echo Installing PCL
 NUMTHREADS=2
@@ -56,19 +56,20 @@ cmake .. \
     -DBUILD_ml:BOOL=ON
 make -j $NUMTHREADS
 sudo make install
+cd ../..
 
 # install PDAL
 git clone https://github.com/PDAL/PDAL.git
 cd PDAL; mkdir build; cd build; 
 cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON
-make; sudo make install; cd ..
+make; sudo make install; cd ../..
 
 # install GIPPY
 git clone https://github.com/gipit/gippy.git
 cd gippy
-sudo ./setup.py install
+sudo ./setup.py install; cd ..
 
 # install lidar2dems
 git clone https://github.com/Applied-GeoSolutions/lidar2dems
 cd lidar2dems
-sudo ./setup.py install
+sudo ./setup.py install; cd ..
