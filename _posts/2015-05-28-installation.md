@@ -74,18 +74,6 @@ PDAL Documentation: http://www.pdal.io/docs.html
         $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON
 
 
-#### GIPPY
-GIPPY is a geospatial raster processing library, used for clipping and masking the images, as well as creating the Canopy Height Model.
-
-1. Clone repository
-
-	$ git clone https://github.com:gipit/gippy.git
-
-2. Run setup
-
-	$ cd gippy; git checkout 0.3.3; sudo ./setup.py install	
-
-
 ### Install lidar2dems
 lidar2dems is a pure python library, and is easily installed with the included setup.py script.  
 

@@ -64,11 +64,6 @@ cd PDAL; mkdir build; cd build;
 cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON
 make; sudo make install; cd ../..
 
-# install GIPPY
-git clone https://github.com/gipit/gippy.git
-cd gippy
-sudo ./setup.py install; cd ..
-
 # install lidar2dems
 git clone https://github.com/Applied-GeoSolutions/lidar2dems
 cd lidar2dems
