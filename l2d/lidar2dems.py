@@ -253,6 +253,7 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
         '--classify'
     ]
     if verbose:
+        cmd.append('-v')
         print ' '.join(cmd)
     out = os.system(' '.join(cmd))
     if verbose:
