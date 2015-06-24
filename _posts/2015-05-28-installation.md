@@ -83,7 +83,7 @@ lidar2dems is a pure python library, and is easily installed with the included s
 
 2. Clone repository
 
-	$ git clone https://github.com:Applied-GeoSolutions/lidar2dems.git
+	$ git clone https://github.com/Applied-GeoSolutions/lidar2dems.git
 
 3. Run setup
 	
