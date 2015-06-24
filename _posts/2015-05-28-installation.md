@@ -21,7 +21,7 @@ Some of the dependencies can be easily installed via the Ubuntu packaing tool fr
 
 ~~~~
 $ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git cmake g++ libgeos libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal python-scipy python-pip python-wheel
+$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal python-scipy python-pip python-wheel libgeos++-dev
 ~~~~
 
 ### Dependencies from source
@@ -53,7 +53,7 @@ Points2Grid is used by PDAL to create rasters from point clouds using a local gr
 
 1. Clone repository
 
-    $ git clone git@github.com:CRREL/points2grid.git
+    $ git clone https://github.com/CRREL/points2grid.git
 
 2. Run CMake steps as above
 
@@ -67,7 +67,7 @@ PDAL Documentation: http://www.pdal.io/docs.html
 
 1. Clone repository
 
-        $ git clone git@github.com:PDAL/PDAL.git pdal
+        $ git clone https://github.com/PDAL/PDAL.git pdal
 
 2. Run CMake as above, adding the additional options below to the command line.
         
