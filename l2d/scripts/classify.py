@@ -46,6 +46,8 @@ def main():
     parser = argparse.ArgumentParser(description='Classify LAS file(s)', formatter_class=dhf)
     parser.add_argument('lasdir', help='Directory of LAS file(s) to classify')
     parser.add_argument('-s', '--site', help='Polygon(s) to process', default=None)
+    h = 'Amount to buffer out site polygons when merging LAS files'
+    parser.add_argument('-b', '--buffer', help=h, default=20)
     parser.add_argument('--slope', help='Slope (override)', default=None)
     parser.add_argument('--cellsize', help='Cell Size (override)', default=None)
     parser.add_argument('--outdir', help='Output directory location', default='./')
@@ -68,8 +70,8 @@ def main():
     fouts = []
     for feature in site:
         filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
-        fout = classify(filenames, site=feature, decimation=args.decimation, 
-                        slope=args.slope, cellsize=args.cellsize,
+        fout = classify(filenames, site=feature, buffer=args.buffer,
+                        slope=args.slope, cellsize=args.cellsize, decimation=args.decimation, 
                         outdir=args.outdir, verbose=args.verbose)
         fouts.append(fout)
 

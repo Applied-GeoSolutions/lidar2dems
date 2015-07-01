@@ -253,7 +253,7 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
         '--classify'
     ]
     if verbose:
-        cmd.append('-v')
+        cmd.append('-v1')
         print ' '.join(cmd)
     out = os.system(' '.join(cmd))
     if verbose:
@@ -323,7 +323,7 @@ def find_lasfile(lasdir='', site=None, params=('1', '3')):
     return filenames
 
 
-def classify(filenames, site=None, 
+def classify(filenames, site=None, buffer=20,
              slope=None, cellsize=None, decimation=None,
              outdir='', suffix='', verbose=False):
     """ Classify files and output single las file """
@@ -348,9 +348,9 @@ def classify(filenames, site=None,
         if decimation is not None:
             _xml = _xml_add_decimation_filter(_xml, decimation)
         # need to build PDAL with GEOS
-        #if site is not None:
-        #    wkt = loads(site.WKT()).buffer(10).wkt
-        #    _xml = _xml_add_crop_filter(_xml, wkt)
+        if site is not None:
+            wkt = loads(site.WKT()).buffer(buffer).wkt
+            _xml = _xml_add_crop_filter(_xml, wkt)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
         print 'Created temp merged las file %s in %s' % (os.path.relpath(ftmp), datetime.now() - start)
