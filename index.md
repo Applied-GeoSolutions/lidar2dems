@@ -12,7 +12,7 @@ A Digital Elevation Model (DEM) is the generic name for any raster data containi
 * Digtial Surface Model (DSM) - This is the calculated elevation using the highest non-ground points. In forested areas this corresponds to the absolute elevation of the top of the canopy, but it could also be the roofs of buildings or other structures.
 * Canopy Height Model (CHM) - This is the difference between the DSM and DTM, which is presumed to be a forested area, thus 'Canopy Height'.
 
-Currently only LAS LiDAR files are supported. However, lidar2dems can handle any number of input point clouds for a given region of interest, be they tiles, swaths, or any arbitrary footprint. A region of interest is defined by a shapefile, called a 'site' file, which must also be in the same reference system as the LAS file(s). Points can be filteres with a variety of options, and resulting DEMs can be gap-filled.
+Currently only LAS LiDAR files are supported. However, lidar2dems can handle any number of input point clouds for a given region of interest, be they tiles, swaths, or any arbitrary footprint. A region of interest is defined by a shapefile, called a 'site' file, which must also be in the same reference system as the LAS file(s). Points can be filters with a variety of options, and resulting DEMs can be gap-filled.
 
 ####Utilities
 
