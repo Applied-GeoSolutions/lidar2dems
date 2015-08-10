@@ -14,7 +14,7 @@ where *las/* is the location containing the las files.  This will create a densi
 
 ![point density image and site shapefile](/lidar2dems/assets/site-1.png)
 
-The created shapefile should use the same SRS as the LiDAR data.  Additionally, an attribute has been added to the shapefile. For each drawn polygon, the terrain type is determined (1-4, as described on the [Concepts](concepts) page). The attribute table is shown below for the 19 features in the shapefile shown above.
+The created shapefile should use the same SRS as the LiDAR data.  Additionally, an attribute has been added to the shapefile. For each drawn polygon, the terrain type is determined (1-4, as described on the [Concepts](../doc/concepts) page). The attribute table is shown below for the 19 features in the shapefile shown above.
 
 ![attribute table of site shapefile](/lidar2dems/assets/site-2.png)
 
