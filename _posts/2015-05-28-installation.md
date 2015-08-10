@@ -71,7 +71,7 @@ PDAL Documentation: http://www.pdal.io/docs.html
 
 2. Run CMake as above, adding the additional options below to the command line.
         
-        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON
+        $ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON -DPDAL_HAVE_GEOS=YES
 
 
 ### Install lidar2dems
