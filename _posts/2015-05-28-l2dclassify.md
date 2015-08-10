@@ -3,7 +3,7 @@ layout: page
 title: "l2d_classify"
 category: doc
 date: 2015-05-28 22:46:23
-order: 2
+order: 3
 ---
 
 The l2d_classify script is used to classify unclassified point clouds into ground and non-ground points. New las files will be output, and depending on the options provided, may be merged classified version of some or all the input las files.
