@@ -6,7 +6,7 @@ date: 2015-05-28 22:38:48
 order: 4
 ---
 
-With a directory of classified las files, a DTM can now be generated.  A DTM represents the ground elevation and can be caculated a few different ways, all of which are output. In heavily forested areas where the ground is obscured there can be relatively few ground points and gappy DTMs can result. In these cases the DTM can be gridded using progressively larger search radii, then gap-filled as described on the [Concepts](doc/concepts) page. In the example below, points collect at an angle off nadir greater than 20 degrees are filtered out.
+With a directory of classified las files, a DTM can now be generated.  A DTM represents the ground elevation and can be caculated a few different ways, all of which are output. In heavily forested areas where the ground is obscured there can be relatively few ground points and gappy DTMs can result. In these cases the DTM can be gridded using progressively larger search radii, then gap-filled as described on the [Concepts](../doc/concepts) page. In the example below, points collect at an angle off nadir greater than 20 degrees are filtered out.
 
         $ l2d_dems dtm lasclass/ -s features.shp --outdir dems --maxangle 20 --gapfill --radius 0.56 1.41 2.50 3.00
 
