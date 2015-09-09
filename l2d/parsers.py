@@ -11,11 +11,11 @@
 #
 #   * Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
-#   
+#
 #   * Redistributions in binary form must reproduce the above copyright notice,
 #     this list of conditions and the following disclaimer in the documentation
 #     and/or other materials provided with the distribution.
-#   
+#
 #   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 #   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -94,7 +94,7 @@ class l2dParser(argparse.ArgumentParser):
         group.add_argument('--maxsd', help='Filter outliers with this SD threshold', default=None)
         group.add_argument('--maxangle', help='Filter by maximum absolute scan angle', default=None)
         group.add_argument('--maxz', help='Filter by maximum elevation value', default=None)
-        #group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
+        # group.add_argument('--scanedge', help='Filter by scanedge value (0 or 1)', default=None)
         group.add_argument('--returnnum', help='Filter by return number', default=None)
         h = 'Decimate the points (steps between points, 1 is no pruning'
         group.add_argument('--decimation', help=h, default=None)
