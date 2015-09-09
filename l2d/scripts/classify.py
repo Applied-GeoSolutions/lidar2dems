@@ -73,21 +73,24 @@ def main():
     fouts = []
     for feature in site:
         # get output filename
-        fout = get_classification_filename(feature, args.outdir, args.slope, args.cell)
+        fout = get_classification_filename(feature, args.outdir, args.slope, args.cellsize)
         # retrieve parameters from input site
         slope, cellsize = class_params(site, args.slope, args.cellsize)
 
         if not os.path.exists(fout) or args.overwrite:
-            filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
-            if len(filenames) > 0:
+            try:
+                filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
                 fout = classify(filenames, fout, slope=slope, cellsize=cellsize,
                                 site=feature, buffer=args.buffer,
                                 decimation=args.decimation, verbose=args.verbose)
-            else:
-                print "No LAS files found for feature %s" % ('' if feature is None else feature.Basename())
+            except Exception as e:
+                print "Error creating %s: %s" % (os.path.relpath(fout), e)
+                if args.verbose:
+                    import traceback
+                    print traceback.format_exc()
         fouts.append(fout)
 
-    print 'Completed in %s' % (datetime.now() - start)
+    print 'l2d_classify completed in %s' % (datetime.now() - start)
 
 
 if __name__ == '__main__':

@@ -35,10 +35,9 @@ Creates density image of all files
 import os
 from datetime import datetime
 from l2d.pdal import create_dems
-from l2d.utils import find_lasfiles, find_lasfile, dem_products, class_params, create_vrt
+from l2d.utils import find_lasfiles, find_classified_lasfile, dem_products, class_params, create_vrt
 from l2d.parsers import l2dParser
 from gippy import GeoVector
-import traceback
 
 
 def main():
@@ -88,33 +87,30 @@ def main():
     # loop through features
     pieces = []
     for feature in site:
-        # find appropriate files
-        if args.demtype == 'density':
-            lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
-        else:
-            lasfiles = find_lasfile(args.lasdir, site=feature, params=class_params(feature))
-        if len(lasfiles) == 0:
-            print "No LAS files found for feature %s" % ('' if feature is None else feature.Basename())
-
-        # create the dems
         try:
+            # find las files
+            if args.demtype == 'density':
+                lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
+            else:
+                lasfiles = find_classified_lasfile(args.lasdir, site=feature, params=class_params(feature))
+            # create dems
             pouts = create_dems(lasfiles, args.demtype, site=feature, gapfill=args.gapfill, **kwargs)
+            # NOTE - if gapfill then fouts is dict, otherwise is list of dicts (1 for each radius)
+            pieces.append(pouts)
         except Exception, e:
+            print "Error creating %s %s: %s" % (args.demtype, '' if feature is None else feature.Basename(), e)
             if args.verbose:
+                import traceback
                 print traceback.format_exc()
-            print 'Error creating %s: %s' % (args.demtype, e)
-            exit(2)
 
-        # NOTE - if gapfill then fouts is dict, otherwise is list of dicts (1 for each radius)
-        pieces.append(pouts)
-
-    # combine all polygons into single file and align to site
+    # combine all features into single file and align to site
     for product in products:
         # there will be mult if gapfill False and multiple radii....use 1st one
         fnames = [piece[product] for piece in pieces]
-        create_vrt(fnames, fouts[product], site=site)
+        if len(fnames) > 0:
+            create_vrt(fnames, fouts[product], site=site)
 
-    print 'Completed %s (%s) in %s' % (args.demtype, args.outdir, datetime.now() - start0)
+    print 'l2d_dems %s completed (%s) in %s' % (args.demtype, args.outdir, datetime.now() - start0)
 
 
 if __name__ == '__main__':

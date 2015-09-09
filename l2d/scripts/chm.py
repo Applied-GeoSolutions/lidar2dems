@@ -51,7 +51,13 @@ def main():
     start = dt.datetime.now()
     print 'Creating CHM from %s and %s' % (args.dsm, args.dtm)
 
-    fout = create_chm(args.dtm, args.dsm, args.fout)
+    try:
+        fout = create_chm(args.dtm, args.dsm, args.fout)
+    except Exception as e:
+        print "Error creating %s: %s" % (fout, e)
+        if args.verbose:
+            import traceback
+            print traceback.format_exc()
 
     if args.hillshade:
         create_hillshade(fout)
