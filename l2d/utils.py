@@ -100,14 +100,18 @@ def find_lasfiles(lasdir='', site=None, checkoverlap=False):
     filenames = glob.glob(os.path.join(lasdir, '*.las'))
     if checkoverlap and site is not None:
         filenames = check_overlap(filenames, site)
+    if len(filenames) == 0:
+        raise Exception("No LAS files found")
     return filenames
 
 
-def find_lasfile(lasdir='', site=None, params=('1', '3')):
+def find_classified_lasfile(lasdir='', site=None, params=('1', '3')):
     """ Locate LAS files within vector or given and/or matching classification parameters """
     bname = '' if site is None else site.Basename() + '_'
     pattern = bname + '_' + class_suffix(params[0], params[1])
     filenames = glob.glob(os.path.join(lasdir, pattern))
+    if len(filenames) == 0:
+        raise Exception("No classified LAS files found")
     return filenames
 
 
