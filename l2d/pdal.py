@@ -257,46 +257,47 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
 
 # LiDAR Classification and DEM creation
 
+def merge_files(filenames, fout=None, site=None, decimation=None, verbose=False):
+    """ Create merged las file """
+    start = datetime.now()
+    if fout is None:
+        fout = os.path.join(os.path.dirname(fout), str(uuid.uuid4()) + '.las')
+    xml = _xml_las_base(fout)
+    _xml = xml[0]
+    if decimation is not None:
+        _xml = _xml_add_decimation_filter(_xml, decimation)
+    # need to build PDAL with GEOS
+    if site is not None:
+        wkt = loads(site.WKT()).buffer(buffer).wkt
+        _xml = _xml_add_crop_filter(_xml, wkt)
+    _xml_add_readers(_xml, filenames)
+    try:
+        run_pipeline(xml, verbose=verbose)
+    except:
+        raise Exception("Error merging LAS files")
+    print 'Created merged file %s in %s' % (os.path.relpath(fout), datetime.now() - start)
+    return fout
 
-def classify(filenames, site=None, buffer=20,
-             slope=None, cellsize=None, decimation=None,
-             outdir='', suffix='', overwrite=False, verbose=False):
+
+def classify(filenames, fout, slope=None, cellsize=None,
+             site=None, buffer=20, decimation=None, verbose=False):
     """ Classify files and output single las file """
     start = datetime.now()
 
-    # get classification parameters
-    slope, cellsize = class_params(site, slope, cellsize)
+    print 'Classifying %s files into %s' % (len(filenames), os.path.relpath(fout))
 
-    # output filename
-    fout = '' if site is None else site.Basename() + '_'
-    fout = os.path.join(os.path.abspath(outdir), fout + class_suffix(slope, cellsize, suffix))
-    prettyname = os.path.relpath(fout)
+    # problem using PMF in XML - instead merge to ftmp and run 'pdal ground'
+    ftmp = merge_files(filenames, site=site, decimation=decimation, verbose=verbose)
 
-    if not os.path.exists(fout) or overwrite:
-        print 'Classifying %s files into %s' % (len(filenames), prettyname)
-
-        # xml pipeline
-        # problem using PMF in XML - instead merge to ftmp and runn 'pdal ground'
-        ftmp = os.path.join(os.path.abspath(outdir), str(uuid.uuid4()) + '.las')
-        xml = _xml_las_base(ftmp)
-        _xml = xml[0]
-        if decimation is not None:
-            _xml = _xml_add_decimation_filter(_xml, decimation)
-        # need to build PDAL with GEOS
-        if site is not None:
-            wkt = loads(site.WKT()).buffer(buffer).wkt
-            _xml = _xml_add_crop_filter(_xml, wkt)
-        _xml_add_readers(_xml, filenames)
-        run_pipeline(xml, verbose=verbose)
-        print 'Created temp merged las file %s in %s' % (os.path.relpath(ftmp), datetime.now() - start)
-
+    try:
         run_pdalground(ftmp, fout, slope, cellsize, verbose=verbose)
+    except:
+        raise Exception("Error running 'pdal ground'")
+    finally:
+        # remove temp file
+        os.remove(ftmp)
 
-        # remove merged, unclassified file
-        if os.path.exists(fout):
-            os.remove(ftmp)
-
-    print 'Completed %s in %s' % (prettyname, datetime.now() - start)
+    print 'Created %s in %s' % (os.path.relpath(fout), datetime.now() - start)
     return fout
 
 

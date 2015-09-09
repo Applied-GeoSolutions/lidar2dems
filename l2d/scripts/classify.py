@@ -35,7 +35,7 @@ Calls `pdal ground` for all provided filenames and creates new las file output w
 import os
 import argparse
 from datetime import datetime
-from l2d.utils import find_lasfiles
+from l2d.utils import find_lasfiles, get_classification_filename, class_params
 from l2d.pdal import classify
 import gippy
 
@@ -72,10 +72,16 @@ def main():
 
     fouts = []
     for feature in site:
-        filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
-        fout = classify(filenames, site=feature, buffer=args.buffer,
-                        slope=args.slope, cellsize=args.cellsize, decimation=args.decimation,
-                        outdir=args.outdir, overwrite=args.overwrite, verbose=args.verbose)
+        # get output filename
+        fout = get_classification_filename(feature, args.outdir, args.slope, args.cell)
+        # retrieve parameters from input site
+        slope, cellsize = class_params(site, args.slope, args.cellsize)
+
+        if not os.path.exists(fout) or args.overwrite:
+            filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
+            fout = classify(filenames, fout, slope=slope, cellsize=cellsize,
+                            site=feature, buffer=args.buffer,
+                            decimation=args.decimation, verbose=args.verbose)
         fouts.append(fout)
 
     print 'Completed in %s' % (datetime.now() - start)

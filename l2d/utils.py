@@ -41,6 +41,16 @@ import numpy
 from .geo import check_overlap, get_vector_bounds
 
 
+# File utilities
+
+def get_classification_filename(site, outdir='', slope=None, cellsize=None, suffix=''):
+    """ Generate filename for classification """
+    fout = '' if site is None else site.Basename() + '_'
+    slope, cellsize = class_params(site, slope, cellsize)
+    fout = os.path.join(os.path.abspath(outdir), fout + class_suffix(slope, cellsize, suffix))
+    return fout
+
+
 def dem_products(demtype):
     """ Return products for this dem type """
     products = {
@@ -166,7 +176,7 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     return fout
 
 
-""" GDAL Utility wrappers """
+# GDAL Utility wrappers
 
 
 def create_vrt(filenames, fout, site=[None], overwrite=False, verbose=False):
