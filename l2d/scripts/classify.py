@@ -79,9 +79,12 @@ def main():
 
         if not os.path.exists(fout) or args.overwrite:
             filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
-            fout = classify(filenames, fout, slope=slope, cellsize=cellsize,
-                            site=feature, buffer=args.buffer,
-                            decimation=args.decimation, verbose=args.verbose)
+            if len(filenames) > 0:
+                fout = classify(filenames, fout, slope=slope, cellsize=cellsize,
+                                site=feature, buffer=args.buffer,
+                                decimation=args.decimation, verbose=args.verbose)
+            else:
+                print "No LAS files found for feature %s" % ('' if feature is None else feature.Basename())
         fouts.append(fout)
 
     print 'Completed in %s' % (datetime.now() - start)

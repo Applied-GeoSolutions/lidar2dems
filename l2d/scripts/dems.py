@@ -94,8 +94,7 @@ def main():
         else:
             lasfiles = find_lasfile(args.lasdir, site=feature, params=class_params(feature))
         if len(lasfiles) == 0:
-            print 'No valid LAS files found!'
-            exit(2)
+            print "No LAS files found for feature %s" % ('' if feature is None else feature.Basename())
 
         # create the dems
         try:
