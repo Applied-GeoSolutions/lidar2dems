@@ -52,7 +52,7 @@ setup(
     description='Utilities for creating DEMs from lidar data',
     author='Matthew Hanson',
     author_email='matt.a.hanson@gmail.com',
-    license='FreeBSD copyright AppliedGeosolutions LLC',
+    license='FreeBSD copyright Applied Geosolutions LLC',
     packages=['l2d', 'l2d.scripts'],
     install_requires=['gippy', 'lxml', 'shapely', 'gdal', 'fiona'],
     entry_points={'console_scripts': scripts}
