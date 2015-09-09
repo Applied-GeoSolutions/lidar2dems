@@ -260,7 +260,7 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
 
 def classify(filenames, site=None, buffer=20,
              slope=None, cellsize=None, decimation=None,
-             outdir='', suffix='', verbose=False):
+             outdir='', suffix='', overwrite=False, verbose=False):
     """ Classify files and output single las file """
     start = datetime.now()
 
@@ -272,7 +272,7 @@ def classify(filenames, site=None, buffer=20,
     fout = os.path.join(os.path.abspath(outdir), fout + class_suffix(slope, cellsize, suffix))
     prettyname = os.path.relpath(fout)
 
-    if not os.path.exists(fout):
+    if not os.path.exists(fout) or overwrite:
         print 'Classifying %s files into %s' % (len(filenames), prettyname)
 
         # xml pipeline
@@ -300,11 +300,14 @@ def classify(filenames, site=None, buffer=20,
     return fout
 
 
-def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, outdir='', suffix='', **kwargs):
+def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False,
+                outdir='', suffix='', overwrite=False, **kwargs):
     """ Create DEMS for multiple radii, and optionally gapfill """
     fouts = []
     for rad in radius:
-        fouts.append(create_dem(filenames, demtype, radius=rad, site=site, outdir=outdir, suffix=suffix, **kwargs))
+        fouts.append(
+            create_dem(filenames, demtype,
+                       radius=rad, site=site, outdir=outdir, suffix=suffix, overwrite=overwrite, **kwargs))
     fnames = {}
     # convert from list of dicts, to dict of lists
     for product in fouts[0].keys():
@@ -322,7 +325,7 @@ def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, o
             # output filename
             bname = '' if site is None else site.Basename() + '_'
             fout = os.path.join(outdir, bname + '%s%s.%s.tif' % (demtype, suffix, product))
-            if not os.path.exists(fout):
+            if not os.path.exists(fout) or overwrite:
                 gap_fill(fouts[product], fout, site=site)
             _fouts[product] = fout
     else:
@@ -335,7 +338,7 @@ def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, o
 
 def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
                maxsd=None, maxz=None, maxangle=None, returnnum=None,
-               products=None, outdir='', suffix='', verbose=False):
+               products=None, outdir='', suffix='', overwrite=False, verbose=False):
     """ Create DEM from collection of LAS files """
     start = datetime.now()
     # filename based on demtype, radius, and optional suffix
@@ -355,7 +358,7 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
         if len(glob.glob(f[:-3] + '*')) == 0:
             run = True
 
-    if run:
+    if run or overwrite:
         print 'Creating %s from %s files' % (prettyname, len(filenames))
         # xml pipeline
         xml = _xml_p2g_base(bname, products, radius, site)

@@ -75,13 +75,13 @@ def main():
 
     # pull out the arguments to pass to create_dems
     keys = ['radius', 'decimation', 'maxsd', 'maxz', 'maxangle', 'returnnum',
-            'outdir', 'suffix', 'verbose']
+            'outdir', 'suffix', 'verbose', 'overwrite']
     vargs = vars(args)
     kwargs = {k: vargs[k] for k in vargs if k in keys}
 
     # run if any products are missing
     exists = all([os.path.exists(f) for f in fouts.values()])
-    if exists:
+    if exists and not args.overwrite:
         print 'Already created %s in %s' % (args.demtype, os.path.relpath(args.outdir))
         exit(0)
 

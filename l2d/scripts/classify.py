@@ -53,6 +53,9 @@ def main():
     parser.add_argument('--outdir', help='Output directory location', default='./')
     h = 'Decimate the points (steps between points, 1 is no pruning'
     parser.add_argument('--decimation', help=h, default=None)
+    parser.add_argument(
+        '-o', '--overwrite', default=False, action='store_true',
+        help='Overwrite any existing output files')
     parser.add_argument('-v', '--verbose', help='Print additional info', default=False, action='store_true')
 
     args = parser.parse_args()
@@ -72,7 +75,7 @@ def main():
         filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
         fout = classify(filenames, site=feature, buffer=args.buffer,
                         slope=args.slope, cellsize=args.cellsize, decimation=args.decimation,
-                        outdir=args.outdir, verbose=args.verbose)
+                        outdir=args.outdir, overwrite=args.overwrite, verbose=args.verbose)
         fouts.append(fout)
 
     print 'Completed in %s' % (datetime.now() - start)

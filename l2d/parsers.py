@@ -83,8 +83,12 @@ class l2dParser(argparse.ArgumentParser):
         group = parser.add_argument_group('output options')
         group.add_argument('--outdir', help='Output directory', default='./')
         group.add_argument('--suffix', help='Suffix to append to output', default='')
-        h = 'Gapfill using multiple radii products and interpolation (no effect on density products)'
-        group.add_argument('-g', '--gapfill', help=h, default=False, action='store_true')
+        group.add_argument(
+            '-g', '--gapfill', default=False, action='store_true',
+            help='Gapfill using multiple radii products and interpolation (no effect on density products)')
+        group.add_argument(
+            '-o', '--overwrite', default=False, action='store_true',
+            help='Overwrite any existing output files')
         self.parent_parsers.append(parser)
 
     def add_filter_parser(self):
