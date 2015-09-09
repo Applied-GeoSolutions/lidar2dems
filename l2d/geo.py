@@ -39,34 +39,10 @@ import commands
 import shutil
 import subprocess
 import json
-from osgeo import ogr, osr
 from math import floor, ceil
 import gippy
 from shapely.geometry import box
 from shapely.wkt import loads
-
-
-class Vector(object):
-    """ Simple wrapper for creating polygon shapefiles """
-
-    def __init__(self, filename, epsg=4326):
-        """ Create vector file """
-        driver = ogr.GetDriverByName('Shapefile')
-        self.ds = driver.CreateDataSource(filename)
-        self.lyr = self.ds.CreateLayer(geom_type=ogr.wkbPolygon, srs=osr.SpatialReference().ImportFromEPSG(epsg))
-
-    def add_feature(self, polygon):
-        """ Add polygon to shapefile """
-        geom = polygon.GetGeometryRef()
-        ftr = ogr.Feature(feature_def=self.lyr.GetLayerDefn())
-        ftr.SetGeometry(geom)
-        self.lyr.CreateFeature(ftr)
-        ftr.Destroy()
-
-    def close(self):
-        """ Close file """
-        self.ds.destroy()
-        self.lyr.destroy()
 
 
 def translate(filename, srs):
