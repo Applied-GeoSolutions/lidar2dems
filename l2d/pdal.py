@@ -291,8 +291,11 @@ def classify(filenames, fout, slope=None, cellsize=None,
 
     try:
         run_pdalground(ftmp, fout, slope, cellsize, verbose=verbose)
+        # verify existence of fout
+        if not os.path.exists(fout):
+            raise Exception("Error creating classified file %s" % fout)
     except:
-        raise Exception("Error running 'pdal ground'")
+        raise Exception("Error creating classified file %s" % fout)
     finally:
         # remove temp file
         os.remove(ftmp)
@@ -373,6 +376,13 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
             _xml = _xml_add_classification_filter(_xml, 2)
         _xml_add_readers(_xml, filenames)
         run_pipeline(xml, verbose=verbose)
+        # verify existence of fout
+        exists = True
+        for f in fouts:
+            if not os.path.exists(f):
+                exists = False
+        if not exists:
+            raise Exception("Error creating dems: %s" % ' '.join(fouts))
 
     print 'Completed %s in %s' % (prettyname, datetime.now() - start)
     return fouts
