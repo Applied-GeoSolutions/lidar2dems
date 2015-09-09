@@ -11,11 +11,11 @@
 #
 #   * Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
-#   
+#
 #   * Redistributions in binary form must reproduce the above copyright notice,
 #     this list of conditions and the following disclaimer in the documentation
 #     and/or other materials provided with the distribution.
-#   
+#
 #   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 #   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -31,31 +31,25 @@
 # Library functions for creating DEMs from Lidar data
 
 import os
-import sys
 from lxml import etree
 import tempfile
 import gippy
 from gippy.algorithms import CookieCutter
 import numpy
-import subprocess
-import json
-from osgeo import ogr
-from math import floor, ceil
-from shapely.geometry import box
 from shapely.wkt import loads
-import commands
-import shutil
 import glob
 from datetime import datetime
 import uuid
+from .utils import splitexts, class_params, class_suffix, dem_products
 
 
-"""XML Functions"""
+""" XML Functions """
+
 
 def _xml_base():
     """ Create initial XML for PDAL pipeline """
     xml = etree.Element("Pipeline", version="1.0")
-    return xml 
+    return xml
 
 
 def _xml_p2g_base(fout, output, radius, site=None):
@@ -109,7 +103,7 @@ def _xml_add_decimation_filter(xml, step):
     """ Add decimation Filter element and return """
     fxml = etree.SubElement(xml, "Filter", type="filters.decimation")
     etree.SubElement(fxml, "Option", name="step").text = str(step)
-    return fxml 
+    return fxml
 
 
 def _xml_add_classification_filter(xml, classification, equality="equals"):
@@ -190,7 +184,7 @@ def _xml_add_crop_filter(xml, wkt):
     """ Add cropping polygon as Filter Element and return """
     fxml = etree.SubElement(xml, "Filter", type="filters.crop")
     etree.SubElement(fxml, "Option", name="polygon").text = wkt
-    return fxml  
+    return fxml
 
 
 def _xml_add_reader(xml, filename):
@@ -214,6 +208,9 @@ def _xml_add_readers(xml, filenames):
 def _xml_print(xml):
     """ Pretty print xml """
     print etree.tostring(xml, pretty_print=True)
+
+
+""" Run PDAL commands """
 
 
 def run_pipeline(xml, verbose=False):
@@ -260,67 +257,7 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
         print out
 
 
-""" Utilities """
-
-
-def dem_products(demtype):
-    """ Return products for this dem type """
-    products = {
-        'density': ['den'],
-        'dsm': ['den', 'max'],
-        'dtm': ['den', 'min', 'max', 'idw']
-    }
-    return products[demtype]
-
-
-def splitexts(filename):
-    """ Split off two extensions """
-    bname, ext = os.path.splitext(filename)
-    parts = os.path.splitext(bname)
-    if len(parts) == 2 and parts[1] in ['.den', '.min', '.max', '.mean', '.idw']:
-        bname = parts[0]
-        ext = parts[1] + ext
-    return bname, ext
-
-
-def class_params(feature, slope=None, cellsize=None):
-    """ Get classification parameters based on land classification """
-    try:
-        # TODO - read in from config file ?
-        params = {
-            '1': (1, 3),    # non-forest, flat
-            '2': (1, 2),    # forest, flat
-            '3': (5, 2),    # non-forest, complex
-            '4': (10, 2),   # forest, complex 
-        }
-        return params[feature['class']]
-    except:
-        if slope is None:
-            slope = '1'
-        if cellsize is None:
-            cellsize = '3'
-    return (slope, cellsize)
-
-
-def class_suffix(slope, cellsize, suffix=''):
-    """" Generate LAS classification suffix """
-    return '%sl2d_s%sc%s.las' % (suffix, slope, cellsize)    
-
-
-def find_lasfiles(lasdir='', site=None, checkoverlap=False):
-    """" Find lasfiles intersecting with site """
-    filenames = glob.glob(os.path.join(lasdir, '*.las'))
-    if checkoverlap and site is not None:
-        filenames = check_overlap(filenames, site)
-    return filenames
-
-
-def find_lasfile(lasdir='', site=None, params=('1', '3')):
-    """ Locate LAS files within vector or given and/or matching classification parameters """
-    bname = '' if site is None else site.Basename() + '_'
-    pattern = site.Basename() + '_' + class_suffix(params[0], params[1])
-    filenames = glob.glob(os.path.join(lasdir, pattern))
-    return filenames
+# LiDAR Classification and DEM creation
 
 
 def classify(filenames, site=None, buffer=20,
@@ -373,7 +310,7 @@ def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, o
     fnames = {}
     # convert from list of dicts, to dict of lists
     for product in fouts[0].keys():
-        fnames[product] = [f[product] for f in fouts]     
+        fnames[product] = [f[product] for f in fouts]
     fouts = fnames
 
     # gapfill all products (except density)
@@ -395,7 +332,7 @@ def create_dems(filenames, demtype, radius=['0.56'], site=None, gapfill=False, o
         for product in fouts.keys():
             _fouts[product] = fouts[product][0]
 
-    return _fouts 
+    return _fouts
 
 
 def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
@@ -417,7 +354,7 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
     # run if any products missing (any extension version is ok, i.e. vrt or tif)
     run = False
     for f in fouts.values():
-        if len(glob.glob(f[:-3]  + '*')) == 0:
+        if len(glob.glob(f[:-3] + '*')) == 0:
             run = True
 
     if run:
@@ -437,28 +374,6 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
 
     print 'Completed %s in %s' % (prettyname, datetime.now() - start)
     return fouts
-
-
-def combine(filenames, fout, site=[None], overwrite=False, verbose=False):
-    """ Combine filenames into single file and align if given site """
-    if os.path.exists(fout) and not overwrite:
-        return fout
-    cmd = [
-        'gdalbuildvrt',
-    ]
-    if not verbose:
-        cmd.append('-q')
-    if site[0] is not None:
-        bounds = get_vector_bounds(site)
-        cmd.append('-te %s' % (' '.join(map(str, bounds))))
-    cmd.append(fout) 
-    cmd = cmd + filenames
-    if verbose:
-        print 'Combining %s files into %s' % (len(filenames), fout)
-    #print ' '.join(cmd)
-    #subprocess.check_output(cmd)
-    os.system(' '.join(cmd))
-    return fout
 
 
 def create_chm(dtm, dsm, chm):
@@ -521,211 +436,3 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     print 'Completed in %s' % (datetime.now() - start)
 
     return fout
-
-
-""" Geometries, Bounding boxes, and transforms """
-
-
-def transform(filename, srs):
-    """ Transform vector file to another SRS"""
-    # TODO - move functionality into GIPPY
-    bname = os.path.splitext(os.path.basename(filename))[0]
-    td = tempfile.mkdtemp()
-    fout = os.path.join(td, bname + '_warped.shp')
-    prjfile = os.path.join(td, bname + '.prj')
-    f = open(prjfile, 'w')
-    f.write(srs)
-    f.close()
-    cmd = 'ogr2ogr %s %s -t_srs %s' % (fout, filename, prjfile)
-    result = commands.getstatusoutput(cmd)
-    return fout
-
-
-def crop2vector(img, vector):
-    """ Crop a GeoImage down to a vector """
-    # transform vector to srs of image
-    vecname = transform(vector.Filename(), img.Projection())
-    warped_vec = gippy.GeoVector(vecname)
-    # rasterize the vector
-    td = tempfile.mkdtemp()
-    mask = gippy.GeoImage(os.path.join(td, vector.LayerName()), img, gippy.GDT_Byte, 1)
-    maskname = mask.Filename()
-    mask = None
-    cmd = 'gdal_rasterize -at -burn 1 -l %s %s %s' % (warped_vec.LayerName(), vecname, maskname)
-    result = commands.getstatusoutput(cmd)
-    mask = gippy.GeoImage(maskname)
-    img.AddMask(mask[0]).Process().ClearMasks()
-    mask = None
-    shutil.rmtree(os.path.dirname(maskname))
-    shutil.rmtree(os.path.dirname(vecname))
-    return img
-
-
-def warp_image(filename, vector, suffix='_clip', clip=False, verbose=False):
-    """ Warp image to given projection, and use bounds if supplied. Creates new file """
-    bounds = get_vector_bounds(vector)
-    
-    #f, fout = tempfile.mkstemp(suffix='.tif')
-    # output file
-    parts = splitexts(filename)
-    fout = parts[0] + suffix + parts[1]
-    # change to tif (in case was vrt)
-    fout = os.path.splitext(fout)[0] + '.tif'
-    if os.path.exists(fout):
-        return fout
-
-    img = gippy.GeoImage(filename)
-    cmd = [
-        'gdalwarp',
-        filename,
-        fout,
-        '-te %s' % ' '.join([str(b) for b in bounds]),
-        '-dstnodata %s' % img[0].NoDataValue(),
-        "-t_srs '%s'" % vector.Projection(),
-        '-r bilinear',
-    ]
-    if not verbose:
-        cmd.append('-q')
-    if clip:
-        cmd.append('-cutline %s' % vector.Filename())
-        #cmd.append('-crop_to_cutline')
-        #sys.stdout.write('Warping and clipping %s\n' % os.path.relpath(filename))
-    #else:
-    #    sys.stdout.write('Warping %s\n' % os.path.relpath(filename))
-    #print ' '.join(cmd)
-    out = os.system(' '.join(cmd))
-    return fout
-
-
-def get_meta_data(filename):
-    """ Get metadata from lasfile as dictionary """
-    cmd = ['pdal', 'info', '--metadata', '--input', os.path.abspath(filename)]
-    meta = json.loads(subprocess.check_output(cmd))['metadata'][0]
-    return meta
-
-
-def get_bounds(filename):
-    """ Return shapely geometry of bounding box """
-    bounds = get_bounding_box(filename)
-    return box(bounds[0][0], bounds[0][1], bounds[2][0], bounds[2][1])
-
-
-def get_bounding_box(filename, min_points=2):
-    """ Get bounding box from LAS file """
-    meta = get_meta_data(filename)
-    mx, my, Mx, My = meta['minx'], meta['miny'], meta['maxx'], meta['maxy']
-    if meta['count'] < min_points:
-        raise Exception('{} contains only {} points (min_points={}).'
-                        .format(filename, meta['count'], min_points))
-    bounds = [(mx, my), (Mx, my), (Mx, My), (mx, My), (mx, my)]
-    return bounds
-
-
-def check_overlap(filenames, vector):
-    """ Return filtered list of filenames that intersect with vector """
-    sitegeom = loads(vector.WKT())
-    goodf = []
-    for f in filenames:
-        try:
-            bbox = get_bounds(f)
-            if sitegeom.intersection(bbox).area > 0:
-                goodf.append(f)
-        except:
-            pass
-    return goodf
-
-
-def check_overlap2(shp_ftr, tileindexshp):
-    """ Compares LAS tile index bounds to sub-polygon site type bounds to return filelist """
-    # driver = ogr.GetDriverByName('ESRI Shapefile')
-    # src = driver.Open(tileindexshp)
-    lyr = tileindexshp.GetLayer()
-    sitegeom = shp_ftr.GetGeometryRef()
-    filelist = []
-
-    for ftr in lyr:
-        tilegeom = ftr.GetGeometryRef()
-        # checks distance between site type polygon and tile, if 0 the two geometries overlap
-        dist = sitegeom.Distance(tilegeom)
-
-        if dist == 0:
-            filelist.append(ftr.GetField(ftr.GetFieldIndex('las_file')))
-
-    lyr.ResetReading()
-    return filelist
-
-
-def create_bounds_file(polygon, outfile):
-    """ Create temporary shapefile with site type polygon """
-    driver = ogr.GetDriverByName('Shapefile')
-    out = driver.CreateDataSource('./tmp.shp')
-    lyr = out.CreateLayer('site', geom_type=ogr.wkbPolygon, srs=osr.SpatialReference().ImportFromEPSG(epsg))
-
-    geom = polygon.GetGeometryRef()
-
-    ftr = ogr.Feature(feature_def=lyr.GetLayerDefn())
-    ftr.SetGeometry(geom)
-    lyr.CreateFeature(ftr)
-    ftr.Destroy()
-    out.Destroy()
-
-    return './tmp.shp'
-
-
-def delete_bounds_file():
-    """ Delete tmp file """
-    os.remove('./tmp.shp')
-
-
-def get_vector_bounds(vector):
-    """ Get vector bounds from GeoVector, on closest integer grid """
-    extent = vector.Extent()
-    bounds = [floor(extent.x0()), floor(extent.y0()), ceil(extent.x1()), ceil(extent.y1())]
-    return bounds
-
-
-""" GDAL Utility wrappers """
-
-
-def create_hillshade(filename):
-    """ Create hillshade image from this file """
-    fout = os.path.splitext(filename)[0] + '_hillshade.tif'
-    sys.stdout.write('Creating hillshade: ')
-    sys.stdout.flush()
-    cmd = 'gdaldem hillshade %s %s' % (filename, fout)
-    os.system(cmd)
-    return fout
-
-
-def create_vrt(filenames, fout, bounds=None, overviews=False, verbose=False):
-    """ Create VRT called fout from filenames """
-    if os.path.exists(fout):
-        return
-    cmd = [
-        'gdalbuildvrt',
-        fout,
-    ]
-    if not verbose:
-        cmd.append('-q')
-    cmd.extend(filenames)
-    if bounds is not None:
-        cmd.append('-te %s' % (' '.join(bounds)))
-    print 'Creating VRT %s' % fout
-    
-    os.system(' '.join(cmd))
-    if overviews:
-        print 'Adding overviews'
-        os.system('gdaladdo -ro %s 2 4 8 16' % fout)
-
-
-def create_vrts(path, bounds=None, overviews=False):
-    """ Create VRT for all these tiles / files """
-    import re
-    import glob
-    pattern = re.compile('.*_(D[ST]M_.*).tif')
-    fnames = glob.glob(os.path.join(path, '*.tif'))
-    names = set(map(lambda x: pattern.match(x).groups()[0], fnames))
-    for n in names:
-        fout = os.path.abspath(os.path.join(path, '%s.vrt' % n))
-        files = glob.glob(os.path.abspath(os.path.join(path, '*%s.tif' % n)))
-        create_vrt(files, fout, bounds, overviews)
