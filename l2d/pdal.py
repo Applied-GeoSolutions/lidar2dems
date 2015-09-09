@@ -33,14 +33,12 @@
 import os
 from lxml import etree
 import tempfile
-import gippy
-from gippy.algorithms import CookieCutter
-import numpy
+
 from shapely.wkt import loads
 import glob
 from datetime import datetime
 import uuid
-from .utils import splitexts, class_params, class_suffix, dem_products
+from .utils import class_params, class_suffix, dem_products, gap_fill
 
 
 """ XML Functions """
@@ -374,65 +372,3 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
 
     print 'Completed %s in %s' % (prettyname, datetime.now() - start)
     return fouts
-
-
-def create_chm(dtm, dsm, chm):
-    """ Create CHM from a DTM and DSM - assumes common grid """
-    dtm_img = gippy.GeoImage(dtm)
-    dsm_img = gippy.GeoImage(dsm)
-    imgout = gippy.GeoImage(chm, dtm_img)
-    nodata = dtm_img[0].NoDataValue()
-    imgout.SetNoData(nodata)
-    dsm_arr = dsm_img[0].Read()
-    arr = dsm_arr - dtm_img[0].Read()
-    arr[dsm_arr == nodata] = nodata
-    imgout[0].Write(arr)
-    return imgout.Filename()
-
-
-def gap_fill(filenames, fout, site=None, interpolation='nearest'):
-    """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
-    print 'Gap-filling to create %s' % os.path.relpath(fout)
-    start = datetime.now()
-    from scipy.interpolate import griddata
-    if len(filenames) == 0:
-        raise Exception('No filenames provided!')
-
-    filenames = sorted(filenames)
-    imgs = gippy.GeoImages(filenames)
-    nodata = imgs[0][0].NoDataValue()
-    arr = imgs[0][0].Read()
-
-    for i in range(1, imgs.size()):
-        locs = numpy.where(arr == nodata)
-        arr[locs] = imgs[i][0].Read()[locs]
-
-    # interpolation at bad points
-    goodlocs = numpy.where(arr != nodata)
-    badlocs = numpy.where(arr == nodata)
-    arr[badlocs] = griddata(goodlocs, arr[goodlocs], badlocs, method=interpolation)
-
-    # write output
-    imgout = gippy.GeoImage(fout, imgs[0])
-    imgout.SetNoData(nodata)
-    imgout[0].Write(arr)
-    fout = imgout.Filename()
-    imgout = None
-
-    # align and clip
-    if site is not None:
-        from osgeo import gdal
-        # get resolution
-        ds = gdal.Open(fout, gdal.GA_ReadOnly)
-        gt = ds.GetGeoTransform()
-        ds = None
-        parts = splitexts(fout)
-        _fout = parts[0] + '_clip' + parts[1]
-        CookieCutter(gippy.GeoImages([fout]), site, _fout, gt[1], abs(gt[5]), True)
-        if os.path.exists(fout):
-            os.remove(fout)
-            os.rename(_fout, fout)
-
-    print 'Completed in %s' % (datetime.now() - start)
-
-    return fout
