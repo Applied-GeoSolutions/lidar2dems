@@ -123,11 +123,23 @@ def create_chm(dtm, dsm, chm):
     dtm_img = gippy.GeoImage(dtm)
     dsm_img = gippy.GeoImage(dsm)
     imgout = gippy.GeoImage(chm, dtm_img)
-    nodata = dtm_img[0].NoDataValue()
+
+    # set nodata
+    dtm_nodata = dtm_img[0].NoDataValue()
+    dsm_nodata = dsm_img[0].NoDataValue()
+    nodata = dtm_nodata
     imgout.SetNoData(nodata)
+
     dsm_arr = dsm_img[0].Read()
-    arr = dsm_arr - dtm_img[0].Read()
-    arr[dsm_arr == nodata] = nodata
+    dtm_arr = dtm_img[0].Read()
+    arr = dsm_arr - dtm_arr
+
+    # set to nodata if no ground pixel
+    arr[dtm_arr == dtm_nodata] = nodata
+    # set to nodata if no surface pixel
+    locs = numpy.where(dsm_arr == dsm_nodata)
+    arr[locs] = nodata
+
     imgout[0].Write(arr)
     return imgout.Filename()
 
