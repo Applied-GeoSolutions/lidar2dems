@@ -34,8 +34,8 @@ Creates density image of all files
 
 import os
 from datetime import datetime
-import glob
-from l2d import *
+from l2d.pdal import create_dems
+from l2d.utils import find_lasfiles, find_lasfile, dem_products, class_params, create_vrt
 from l2d.parsers import l2dParser
 from gippy import GeoVector
 import traceback
@@ -70,14 +70,14 @@ def main():
     # the final filenames
     products = dem_products(args.demtype)
     bnames = {p: '%s%s.%s' % (args.demtype, args.suffix, p) for p in products}
-    prefix = '' # if args.site is None else site.Basename() + '_'
+    prefix = ''  # if args.site is None else site.Basename() + '_'
     fouts = {p: os.path.join(args.outdir, '%s%s%s.%s.vrt' % (prefix, args.demtype, args.suffix, p)) for p in products}
 
     # pull out the arguments to pass to create_dems
-    keys = ['radius', 'decimation', 'maxsd', 'maxz', 'maxangle', 'returnnum', 
+    keys = ['radius', 'decimation', 'maxsd', 'maxz', 'maxangle', 'returnnum',
             'outdir', 'suffix', 'verbose']
     vargs = vars(args)
-    kwargs = {k:vargs[k] for k in vargs if k in keys}
+    kwargs = {k: vargs[k] for k in vargs if k in keys}
 
     # run if any products are missing
     exists = all([os.path.exists(f) for f in fouts.values()])
@@ -87,7 +87,7 @@ def main():
 
     # loop through features
     pieces = []
-    for feature in site: 
+    for feature in site:
         # find appropriate files
         if args.demtype == 'density':
             lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
@@ -113,7 +113,7 @@ def main():
     for product in products:
         # there will be mult if gapfill False and multiple radii....use 1st one
         fnames = [piece[product] for piece in pieces]
-        combine(fnames, fouts[product], site=site)
+        create_vrt(fnames, fouts[product], site=site)
 
     print 'Completed %s (%s) in %s' % (args.demtype, args.outdir, datetime.now() - start0)
 
