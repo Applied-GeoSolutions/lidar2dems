@@ -11,11 +11,11 @@
 #
 #   * Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
-#   
+#
 #   * Redistributions in binary form must reproduce the above copyright notice,
 #     this list of conditions and the following disclaimer in the documentation
 #     and/or other materials provided with the distribution.
-#   
+#
 #   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 #   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,13 +28,14 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
+import argparse
 from glob import glob
 from copy import deepcopy
 from os import path, remove
-
+from datetime import datetime
 from collections import OrderedDict
 
-from l2d import get_bounding_box
+from l2d.geo import get_bounding_box, Vector
 from fiona import collection
 
 _polygon_template = {
@@ -118,50 +119,31 @@ def process_polygon_dirs(parentdir, shapename, overwrite=False,):
         )
 
 
-def test(leave_shp, overwrite):
-    tdir = "/mimas/projects/cmsindo/2014-lidar/results/Polygon_009_utm_50S/LAS/"
-    shp = path.join(tdir, "test_tiles.shp")
-    crs = deepcopy(_crs_template)
-    crs['south'] = True
-    lasdir2shp(tdir, shp, crs, overwrite)
-    assert path.exists(shp), 'created shapefile'
-    if not leave_shp:
-        remove(shp)
-    print('test shp: {}'.format(shp))
-
-
 def main():
-    import argparse
-    parser = argparse.ArgumentParser(
-        prog='lasdir2shp',
-        description='Does what the name says.',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
+    dhf = argparse.ArgumentDefaultsHelpFormatter
+
+    parser = argparse.ArgumentParser(description='Create shapefile showing bounds of LAS files', formatter_class=dhf)
+    parser.add_argument('files', help="List of input LiDAR files")
+    parser.add_argument(
+        '-s', '--shapefile', required=False, default='tiles.shp',
+        help='Name of output shapefile')
     parser.add_argument(
         '-o', '--overwrite', required=False, default=False, action='store_true',
-        help='overwrite existing tiles file if encountered'
-    )
+        help='Overwrite existing output shapefile')
     parser.add_argument(
-        '-s', '--shapename', required=False, default='tiles.shp',
-        help='name of shapefile to be put into each directory.'
-    )
+        '-epsg', default=4326,
+        help='EPSG code of LiDAR spatial reference system')
     parser.add_argument(
-        'top_dir',
-        help=('directory to dig through for "Polygon_..." dirs. (test or '
-              'test-leave-shp will run test routine')
-    )
-    args = parser.parse_args()
+        '-v', '--verbose', default=False, action='store_true',
+        help='Print additional info')
 
-    if args.top_dir == 'test':
-        test(False, args.overwrite)
-    elif args.top_dir == 'test-leave-shp':
-        test(True, args.overwrite)
-    else:
-        process_polygon_dirs(
-            parentdir=args.top_dir,
-            shapename=args.shapename,
-            overwrite=args.overwrite,
-        )
+    # args = parser.parse_args()
+
+    # start = datetime.now()
+
+    print 'l2d_tiles not yet implemented'
+
+    # print 'Completed in %s' % (datetime.now() - start)
 
 
 if __name__ == '__main__':
