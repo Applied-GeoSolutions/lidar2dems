@@ -97,7 +97,8 @@ def check_overlap(filenames, vector):
 def get_meta_data(filename):
     """ Get metadata from lasfile as dictionary """
     cmd = ['pdal', 'info', '--metadata', '--input', os.path.abspath(filename)]
-    meta = json.loads(subprocess.check_output(cmd))['metadata'][0]
+    out = subprocess.check_output(cmd)
+    meta = json.loads(out)['metadata']
     return meta
 
 
