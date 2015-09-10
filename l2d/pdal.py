@@ -257,18 +257,19 @@ def run_pdalground(fin, fout, slope, cellsize, verbose=False):
 
 # LiDAR Classification and DEM creation
 
-def merge_files(filenames, fout=None, site=None, decimation=None, verbose=False):
+def merge_files(filenames, fout=None, site=None, buff=20, decimation=None, verbose=False):
     """ Create merged las file """
     start = datetime.now()
     if fout is None:
-        fout = os.path.join(os.path.dirname(fout), str(uuid.uuid4()) + '.las')
+        # TODO ? use temp folder?
+        fout = os.path.join(os.path.abspath(os.path.dirname(filenames[0])), str(uuid.uuid4()) + '.las')
     xml = _xml_las_base(fout)
     _xml = xml[0]
     if decimation is not None:
         _xml = _xml_add_decimation_filter(_xml, decimation)
     # need to build PDAL with GEOS
     if site is not None:
-        wkt = loads(site.WKT()).buffer(buffer).wkt
+        wkt = loads(site.WKT()).buffer(buff).wkt
         _xml = _xml_add_crop_filter(_xml, wkt)
     _xml_add_readers(_xml, filenames)
     try:
@@ -280,14 +281,14 @@ def merge_files(filenames, fout=None, site=None, decimation=None, verbose=False)
 
 
 def classify(filenames, fout, slope=None, cellsize=None,
-             site=None, buffer=20, decimation=None, verbose=False):
+             site=None, buff=20, decimation=None, verbose=False):
     """ Classify files and output single las file """
     start = datetime.now()
 
     print 'Classifying %s files into %s' % (len(filenames), os.path.relpath(fout))
 
     # problem using PMF in XML - instead merge to ftmp and run 'pdal ground'
-    ftmp = merge_files(filenames, site=site, decimation=decimation, verbose=verbose)
+    ftmp = merge_files(filenames, site=site, buff=buff, decimation=decimation, verbose=verbose)
 
     try:
         run_pdalground(ftmp, fout, slope, cellsize, verbose=verbose)
