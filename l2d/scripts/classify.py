@@ -47,7 +47,7 @@ def main():
     parser.add_argument('lasdir', help='Directory of LAS file(s) to classify')
     parser.add_argument('-s', '--site', help='Polygon(s) to process', default=None)
     h = 'Amount to buffer out site polygons when merging LAS files'
-    parser.add_argument('-b', '--buffer', help=h, default=20)
+    parser.add_argument('-b', '--buff', help=h, default=20)
     parser.add_argument('--slope', help='Slope (override)', default=None)
     parser.add_argument('--cellsize', help='Cell Size (override)', default=None)
     parser.add_argument('--outdir', help='Output directory location', default='./')
@@ -74,15 +74,16 @@ def main():
     for feature in site:
         # get output filename
         fout = get_classification_filename(feature, args.outdir, args.slope, args.cellsize)
+
         # retrieve parameters from input site
-        slope, cellsize = class_params(site, args.slope, args.cellsize)
+        slope, cellsize = class_params(feature, args.slope, args.cellsize)
 
         if not os.path.exists(fout) or args.overwrite:
             try:
                 filenames = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
                 fout = classify(filenames, fout, slope=slope, cellsize=cellsize,
-                                site=feature, buffer=args.buffer,
-                                decimation=args.decimation, verbose=args.verbose)
+                                site=feature, buff=args.buff,
+                                decimation=args.decimation,  verbose=args.verbose)
             except Exception as e:
                 print "Error creating %s: %s" % (os.path.relpath(fout), e)
                 if args.verbose:
