@@ -110,7 +110,7 @@ def main():
         if len(fnames) > 0:
             create_vrt(fnames, fouts[product], site=site)
 
-    print 'l2d_dems %s completed (%s) in %s' % (args.demtype, args.outdir, datetime.now() - start0)
+    print 'l2d_dems %s completed (%s) in %s' % (args.demtype, os.path.relpath(args.outdir), datetime.now() - start0)
 
 
 if __name__ == '__main__':
