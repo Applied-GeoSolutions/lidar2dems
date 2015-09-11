@@ -79,7 +79,6 @@ def main():
     fouts = []
     for feature in site:
         prefix = os.path.join(args.demdir, '' if feature is None else feature.Basename() + '_')
-        print prefix
         fdtm = prefix + args.dtm
         fdsm = prefix + args.dsm
         if not os.path.exists(fdtm) or not os.path.exists(fdsm):
@@ -97,7 +96,8 @@ def main():
         if args.hillshade:
             create_hillshade(fout)
 
-    if len(fouts) > 0:
+    # if multiple file output then combine them together
+    if len(fouts) > 0 and site[0] is not None:
         create_vrt(fouts, fout_final, site=site)
 
     print 'Completed %s in %s' % (fout_final, dt.datetime.now() - start)
