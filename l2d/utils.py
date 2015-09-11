@@ -108,7 +108,7 @@ def find_lasfiles(lasdir='', site=None, checkoverlap=False):
 def find_classified_lasfile(lasdir='', site=None, params=('1', '3')):
     """ Locate LAS files within vector or given and/or matching classification parameters """
     bname = '' if site is None else site.Basename() + '_'
-    pattern = bname + '_' + class_suffix(params[0], params[1])
+    pattern = bname + class_suffix(params[0], params[1])
     filenames = glob.glob(os.path.join(lasdir, pattern))
     if len(filenames) == 0:
         raise Exception("No classified LAS files found")
@@ -146,7 +146,6 @@ def create_chm(dtm, dsm, chm):
 
 def gap_fill(filenames, fout, site=None, interpolation='nearest'):
     """ Gap fill from higher radius DTMs, then fill remainder with interpolation """
-    print 'Gap-filling to create %s' % os.path.relpath(fout)
     start = datetime.now()
     from scipy.interpolate import griddata
     if len(filenames) == 0:
@@ -187,7 +186,7 @@ def gap_fill(filenames, fout, site=None, interpolation='nearest'):
             os.remove(fout)
             os.rename(_fout, fout)
 
-    print 'Completed in %s' % (datetime.now() - start)
+    print 'Completed gap-filling to create %s in %s' % (os.path.relpath(fout), datetime.now() - start)
 
     return fout
 
