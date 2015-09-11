@@ -32,9 +32,11 @@
 Create Canopy Height model from a DSM and DTM
 """
 
+import os
 import argparse
 import datetime as dt
-from l2d import create_chm, create_hillshade
+from l2d.utils import create_chm, create_hillshade, create_vrt
+import gippy
 
 
 def main():
@@ -42,27 +44,63 @@ def main():
 
     desc = 'Calculate and create CHM from a DSM and DTM'
     parser = argparse.ArgumentParser(description=desc, formatter_class=dhf)
-    parser.add_argument('dsm', help='DSM input', default='DSM.tif', nargs='?')
-    parser.add_argument('dtm', help='DTM input', default='DTM.tif', nargs='?')
-    parser.add_argument('--fout', help='Output filename', default='CHM.tif')
-    parser.add_argument('--hillshade', help='Generate hillshade', default=False, action='store_true')
+    parser.add_argument(
+        'demdir', help='Directory holding DEMs (and used to store CHM output')
+    parser.add_argument(
+        '-s', '--site', default=None,
+        help='Site shapefile name (use if used for DTM/DSM creation')
+    parser.add_argument(
+        '--dsm', default='dsm.max.tif',
+        help='Filename of DSM input (will be preceded by feature name if using shapefile')
+    parser.add_argument(
+        '--dtm', default='dtm.idw.tif',
+        help='Filename of DTM input (will be preceded by feature name if using shapefile')
+    parser.add_argument(
+        '--fout', default='chm.tif',
+        help='Output filename (created in demdir)')
+    parser.add_argument(
+        '--hillshade', default=False, action='store_true',
+        help='Generate hillshade')
+    parser.add_argument(
+        '-v', '--verbose', default=False, action='store_true',
+        help='Print additional info')
     args = parser.parse_args()
 
     start = dt.datetime.now()
-    print 'Creating CHM from %s and %s' % (args.dsm, args.dtm)
+    print 'Creating CHM from DEMS in %s' % (os.path.relpath(args.demdir))
 
-    try:
-        fout = create_chm(args.dtm, args.dsm, args.fout)
-    except Exception as e:
-        print "Error creating %s: %s" % (fout, e)
-        if args.verbose:
-            import traceback
-            print traceback.format_exc()
+    if args.site is not None:
+        site = gippy.GeoVector(args.site)
+    else:
+        site = [None]
 
-    if args.hillshade:
-        create_hillshade(fout)
+    fout_final = os.path.join(args.demdir, os.path.splitext(args.fout)[0] + '.vrt')
 
-    print 'Completed in %s' % (dt.datetime.now() - start)
+    fouts = []
+    for feature in site:
+        prefix = os.path.join(args.demdir, '' if feature is None else feature.Basename() + '_')
+        print prefix
+        fdtm = prefix + args.dtm
+        fdsm = prefix + args.dsm
+        if not os.path.exists(fdtm) or not os.path.exists(fdsm):
+            print "No valid input files found (%s)" % prefix
+            continue
+        try:
+            fout = create_chm(fdtm, fdsm, prefix + args.fout)
+            fouts.append(fout)
+        except Exception as e:
+            print "Error creating %s: %s" % (fout, e)
+            if args.verbose:
+                import traceback
+                print traceback.format_exc()
+
+        if args.hillshade:
+            create_hillshade(fout)
+
+    if len(fouts) > 0:
+        create_vrt(fouts, fout_final, site=site)
+
+    print 'Completed %s in %s' % (fout_final, dt.datetime.now() - start)
 
 
 if __name__ == "__main__":
