@@ -379,7 +379,7 @@ def create_dem(filenames, demtype, radius='0.56', site=None, decimation=None,
         run_pipeline(xml, verbose=verbose)
         # verify existence of fout
         exists = True
-        for f in fouts:
+        for f in fouts.values():
             if not os.path.exists(f):
                 exists = False
         if not exists:
