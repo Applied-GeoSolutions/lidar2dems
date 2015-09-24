@@ -63,11 +63,14 @@ Install PCL with this [install-pcl.sh](/lidar2dems/assets/install-pcl.sh) script
 #### PDAL
 PDAL is library for conversion and filtering of LiDAR data. It is under very active development and has features particularly well suited to batch processing.  It can also incorporate PCL for doing advanced algorithms on point clouds.
 
-PDAL Documentation: http://www.pdal.io/docs.html
+The notes here are for building PDAL from source, although there may be binaries available for your system, see here: http://www.pdal.io/download.html
+and see the complete PDAL Documentation: http://www.pdal.io/docs.html for more information.
 
 1. Clone repository
 
         $ git clone https://github.com/PDAL/PDAL.git pdal
+        $ cd pdal
+        $ git checkout tags/1.0.1
 
 2. Run CMake as above, adding the additional options below to the command line.
         
