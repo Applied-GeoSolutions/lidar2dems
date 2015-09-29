@@ -61,7 +61,8 @@ cd ../..
 
 # install PDAL
 git clone https://github.com/PDAL/PDAL.git
-cd PDAL; mkdir build; cd build; 
+cd PDAL; git checkout tags/1.0.1
+mkdir build; cd build; 
 cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUILD_PLUGIN_PYTHON=ON -DPDAL_HAVE_GEOS=YES
 make; sudo make install; cd ../..
 
