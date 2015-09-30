@@ -10,8 +10,9 @@ The l2d_classify script is used to classify unclassified point clouds into groun
 
 ~~~
 $ l2d_classify -h
-usage: l2d_classify [-h] [-s SITE] [--slope SLOPE] [--cellsize CELLSIZE]
-                    [--outdir OUTDIR] [--decimation DECIMATION] [-v]
+usage: l2d_classify [-h] [-s SITE] [-b BUFF] [--slope SLOPE]
+                    [--cellsize CELLSIZE] [--outdir OUTDIR]
+                    [--decimation DECIMATION] [-o] [-v]
                     lasdir
 
 Classify LAS file(s)
@@ -22,12 +23,15 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -s SITE, --site SITE  Polygon(s) to process (default: None)
+  -b BUFF, --buff BUFF  Amount to buffer out site polygons when merging LAS
+                        files (default: 20)
   --slope SLOPE         Slope (override) (default: None)
   --cellsize CELLSIZE   Cell Size (override) (default: None)
   --outdir OUTDIR       Output directory location (default: ./)
   --decimation DECIMATION
                         Decimate the points (steps between points, 1 is no
                         pruning (default: None)
+  -o, --overwrite       Overwrite any existing output files (default: False)
   -v, --verbose         Print additional info (default: False)
 ~~~
 
