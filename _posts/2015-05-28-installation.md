@@ -91,3 +91,23 @@ lidar2dems is a pure python library, and is easily installed with the included s
 3. Run setup
 	
 	$ cd lidar2dems; sudo ./setup.py install
+
+### Run tests
+Some automated tests can be run to ensure the installation has succeeded.   Run the tests from the lidar2dems repository directory that was cloned from github. If you see the output below, lidar2dems is working correctly.
+
+~~~
+$ nosetests test -v
+
+Test classification ... ok
+Test creating density ... ok
+Create DTM ... ok
+Create DSM ... ok
+Create CHM ... ok
+Test getting classification filename ... ok
+Test finding las files ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 2.513s
+
+OK
+~~~
