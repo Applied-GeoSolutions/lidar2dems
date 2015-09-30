@@ -77,6 +77,7 @@ def main():
     fout_final = os.path.join(args.demdir, os.path.splitext(args.fout)[0] + '.vrt')
 
     fouts = []
+    hillfouts = []
     for feature in site:
         prefix = os.path.join(args.demdir, '' if feature is None else feature.Basename() + '_')
         fdtm = prefix + args.dtm
@@ -94,11 +95,14 @@ def main():
                 print traceback.format_exc()
 
         if args.hillshade:
-            create_hillshade(fout)
+            hillfouts.append(create_hillshade(fout))
 
     # if multiple file output then combine them together
     if len(fouts) > 0 and site[0] is not None:
         create_vrt(fouts, fout_final, site=site)
+        if args.hillshade:
+            fout = os.path.splitext(fout_final)[0] + '_hillshade.tif'
+            create_vrt(hillfouts, fout, site=site)
 
     print 'Completed %s in %s' % (fout_final, dt.datetime.now() - start)
 
