@@ -133,6 +133,20 @@ def create_chm(dtm, dsm, chm):
 
     dsm_arr = dsm_img[0].Read()
     dtm_arr = dtm_img[0].Read()
+
+    # ensure same size arrays, clip to smallest
+    s1 = dsm_arr.shape
+    s2 = dtm_arr.shape
+    if s1 != s2:
+        if s1[0] > s2[0]:
+            dsm_arr = dsm_arr[0:s2[0], :]
+        elif s2[0] > s1[0]:
+            dtm_arr = dtm_arr[0:s1[0], :]
+        if s1[1] > s2[1]:
+            dsm_arr = dsm_arr[:, 0:s2[1]]
+        elif s2[1] > s1[1]:
+            dtm_arr = dtm_arr[:, 0:s1[1]]
+
     arr = dsm_arr - dtm_arr
 
     # set to nodata if no ground pixel
