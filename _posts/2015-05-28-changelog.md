@@ -13,6 +13,7 @@ v1.1.0:
 - overwrite option added
 - set nodata in CHM where either DTM or DSM is nodata
 - Calculate CHM in the DTM/DSM pieces rather than the whole to avoid memory errors on large datasets 
+- Several bug fixes
 
 v1.0.0:
 - Initial public release
