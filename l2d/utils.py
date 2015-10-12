@@ -73,22 +73,24 @@ def splitexts(filename):
 
 def class_params(feature, slope=None, cellsize=None):
     """ Get classification parameters based on land classification """
-    if slope is None and cellsize is None:
-	    try:
-		# TODO - read in from config file ?
-		params = {
-		    '1': (1, 3),    # non-forest, flat
-		    '2': (1, 2),    # forest, flat
-		    '3': (5, 2),    # non-forest, complex
-		    '4': (10, 2),   # forest, complex
-		}
-		return params[feature['class']]
-	    except:
-		if slope is None:
-		    slope = '1'
-		if cellsize is None:
-		    cellsize = '3'
-    return (slope, cellsize)
+    if slope is not None and cellsize is not None:
+	return (slope, cellsize)
+    else:
+	try:
+	    # TODO - read in from config file ?
+	    params = {
+		'1': (1, 3),    # non-forest, flat
+		'2': (1, 2),    # forest, flat
+		'3': (5, 2),    # non-forest, complex
+		'4': (10, 2),   # forest, complex
+	    }
+	    return params[feature['class']]
+	except:
+	    if slope is None:
+		slope = '1'
+	    if cellsize is None:
+		cellsize = '3'
+        return (slope, cellsize)
 
 
 def class_suffix(slope, cellsize, suffix=''):
