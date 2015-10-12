@@ -45,9 +45,9 @@ def main():
     parser.add_input_parser()
     parser.add_output_parser()
     parser.add_filter_parser()
-    parser.add_argument('--vendor_classified', 
-	help='Files are not classified by l2d, the l2d naming scheme was not used for classified files', 
-	default=False)
+#    parser.add_argument('--vendor_classified', 
+#	help='Files are not classified by l2d, the l2d naming scheme was not used for classified files', 
+#	default=False)
     args = parser.parse_args()
 
     start0 = datetime.now()
@@ -97,7 +97,7 @@ def main():
 	    if args.demtype == 'density':
 	        lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
   	    else:
-		if vendor_classified == False:
+		if args.vendor_classified == False:
 	            lasfiles = find_classified_lasfile(args.lasdir, site=feature, params=class_params(feature))
 		else:
 		    lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
