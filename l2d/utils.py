@@ -111,7 +111,7 @@ def find_lasfiles(lasdir='', site=None, checkoverlap=False):
 def find_classified_lasfile(lasdir='', site=None, params=('1', '3')):
     """ Locate LAS files within vector or given and/or matching classification parameters """
     bname = '' if site is None else site.Basename() + '_'
-    slope, cellsize = class_params(site, params[0], params[1])
+    slope, cellsize = class_params(site) #, params[0], params[1])
     pattern = bname + class_suffix(slope, cellsize)
     filenames = glob.glob(os.path.join(lasdir, pattern))
     if len(filenames) == 0:
