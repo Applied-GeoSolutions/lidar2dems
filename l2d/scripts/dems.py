@@ -98,7 +98,8 @@ def main():
 	        lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
   	    else:
 		if args.vendor_classified == False:
-	            lasfiles = find_classified_lasfile(args.lasdir, site=feature, params=class_params(feature))
+		    parameters = class_params(feature, args.slope, args.cellsize)
+	            lasfiles = find_classified_lasfile(args.lasdir, site=feature, params=parameters)
 		else:
 		    lasfiles = find_lasfiles(args.lasdir, site=feature, checkoverlap=True)
 	    # create dems

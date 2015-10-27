@@ -76,6 +76,8 @@ class l2dParser(argparse.ArgumentParser):
 	group.add_argument(
 	    '--vendor_classified', 
 	    help='Files are not classified by l2d, the l2d naming scheme was not used for classified files', default=False)
+    	group.add_argument('--slope', help='Slope (override)', default=None)
+    	group.add_argument('--cellsize', help='Cell Size (override)', default=None)
         group.add_argument('-r', '--radius', help='Create DEM or each provided radius', nargs='*', default=['0.56'])
         group.add_argument('-s', '--site', help='Shapefile of site(s) in same projection as LiDAR', default=None)
         group.add_argument('-v', '--verbose', help='Print additional info', default=False, action='store_true')
