@@ -242,7 +242,7 @@ def run_pdalground(fin, fout, slope, cellsize, maxWindowSize, maxDistance, verbo
         'pdal',
         'ground',
         '-i %s' % fin,
-        '-o %s' % fout
+        '-o %s' % fout,
         '--slope %s' % slope,
         '--cellSize %s' % cellsize
     ]
