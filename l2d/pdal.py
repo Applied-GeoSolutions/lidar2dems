@@ -256,6 +256,7 @@ def run_pdalground(fin, fout, slope, cellsize, maxWindowSize, maxDistance, verbo
     if verbose:
         cmd.append('-v1')
         print ' '.join(cmd)
+    print ' '.join(cmd)
     out = os.system(' '.join(cmd))
     if verbose:
         print out
