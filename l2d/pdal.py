@@ -247,9 +247,9 @@ def run_pdalground(fin, fout, slope, cellsize, maxWindowSize, maxDistance, verbo
         '--cellSize %s' % cellsize
     ]
     if maxWindowSize is not None:
-	cmd.append('--maxWindowSize %s') %maxWindowSize
+	cmd.append('--maxWindowSize %s' %maxWindowSize)
     if maxDistance is not None:
-	cmd.append('--maxDistance %s') %maxDistance
+	cmd.append('--maxDistance %s' %maxDistance)
 
     cmd.append('--classify')
     
