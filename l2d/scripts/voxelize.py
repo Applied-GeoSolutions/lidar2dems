@@ -36,7 +36,7 @@ import os
 from datetime import datetime
 import argparse
 from l2d.voxel_utils import create_voxels
-from l2d.utils import find_lasfiles, find_classified_lasfile, create_vrt
+from l2d.utils import find_lasfiles, find_classified_lasfile, create_vrt, class_params
 from l2d.parsers import l2dParser
 from gippy import GeoVector
 
