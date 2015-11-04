@@ -50,7 +50,7 @@ def main():
     parser.add_argument(
 	'demdir', help='Directory holding DEMs (including DSM and DTM for each feature)')
     parser.add_argument(
-	'--voxtypes', help='Type of return data in output voxels (e.g. counts, intensity)', default=['count','intensity'])
+	'--voxtypes', help='Type of return data in output voxels (e.g. counts, intensity)', nargs='*', default=['count','intensity'])
     parser.add_argument(
         '-s', '--site', default=None,
         help='Site shapefile name (use if used for DTM/DSM creation); if area of interest is smaller than whole scene, l2d_dems should be run 			again using voxel region of interest shapefile')

@@ -251,7 +251,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
     if 'count' in products:
 	print 'Writing %s' %denout, 'fullest pixel has %i returns' %numpy.max(rhp)
 	# numpy.save(denout,rhp)
-    	den_img = gippy.GeoImage(denout,dtm_img,gippy.GDT_Int32,bands)
+    	den_img = gippy.GeoImage(denout,dtm_img,gippy.GDT_Int16,bands)
 	for b in range(0,bands):
 	    den_img[b].Write(rhp[b])
 
