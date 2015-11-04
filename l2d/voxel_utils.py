@@ -149,6 +149,9 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
 	    dtmname = '%sdtm.idw.tif' %('' if site is None else site.Basename() + '_')
 	    dtmpath = os.path.join(demdir, dtmname)
 	chmpath = os.path.join(demdir, chmname)
+	if not os.path.exists(chmpath):
+	    chmname = 'chm.tif'
+	    chmpath = os.path.join(demdir, chmname)
 	print dtmpath, chmpath
 	paths = [dtmpath, chmpath]
     	exists = all([os.path.exists(f) for f in paths])
