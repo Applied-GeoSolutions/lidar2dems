@@ -133,7 +133,7 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
     # products (vox)
     products = voxtypes
     fouts = {o: bname + '%s.voxels.%s' % (o, ext) for o in products}
-    # print fouts
+    print fouts
     prettyname = os.path.relpath(bname) + ' [%s]' % (' '.join(products))
 
     # run if any products missing (any extension version is ok, i.e. vrt or tif)
@@ -166,11 +166,11 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
 	print 'Already created %s in %s' % (voxtypes, os.path.relpath(outdir))
         exit(0)
 
-	# check if voxel files were created
-	exists=True
-        for f in fouts.values():
-            if not os.path.exists(f):
-                exists = False
+    # check if voxel files were created
+    exists=True
+    for f in fouts.values():
+        if not os.path.exists(f):
+            exists = False
         if not exists:
             raise Exception("Error creating voxels: %s" % ' '.join(fouts))
 
@@ -190,7 +190,9 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
     # read dtm and chm arrays
     dtm_img = gippy.GeoImage(dtmpath)
+    print 'opened dtm'
     chm_img = gippy.GeoImage(chmpath)
+    print 'opened chm'
     chm_arr = chm_img[0].Read()
     dtm_arr = dtm_img[0].Read()
 
