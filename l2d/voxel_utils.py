@@ -202,6 +202,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
     # chmMax is the number of bands that will be necessary to populate the output grids
     chmMax = numpy.int16(math.ceil(numpy.percentile(chm_arr,99.999))+1)
+    print 'max canopy height is ', chmMax
 
     # get geo information from dtm image - unsure if this is needed
     srs = dtm_img.Projection()
@@ -210,8 +211,10 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
     # loop through las file and populate multi-dimensional grid
     # create rhp and rhi, multi-dimensional output grids - rhp is density, rhi is intensity sum
+    print 'creating output arrays'
     rhp = numpy.zeros((chmMax,dtm_y_shape,dtm_x_shape))
     rhi = numpy.zeros((chmMax,dtm_y_shape,dtm_x_shape))
+    print 'created them!'
     bands,nrows,ncols = rhp.shape
 
     print "Populating Voxels"
