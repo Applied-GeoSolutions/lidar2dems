@@ -30,7 +30,7 @@
 
 # Library functions for creating voxel rasters from Lidar data
 
-import os, numpy, math
+import os, numpy, math, sys
 import gippy
 import glob
 from datetime import datetime
@@ -176,6 +176,7 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
 
     print 'Completed %s in %s' % (prettyname, datetime.now() - start)
     return fouts
+    sys.stdout.flush()
 
 
 def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', chmpath='', outdir=''):
@@ -216,6 +217,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
     for lasfile in lasfiles:
         print "Iterating over points in files %s" %(lasfile)
+	sys.stdout.flush()
 
         f = file.File(lasfile,mode='r')
         for p in f:
