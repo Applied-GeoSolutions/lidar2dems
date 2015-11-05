@@ -133,7 +133,7 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
     # products (vox)
     products = voxtypes
     fouts = {o: bname + '%s.voxels.%s' % (o, ext) for o in products}
-    print fouts
+    # print fouts
     prettyname = os.path.relpath(bname) + ' [%s]' % (' '.join(products))
 
     # run if any products missing (any extension version is ok, i.e. vrt or tif)
@@ -190,18 +190,14 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
     # read dtm and chm arrays
     dtm_img = gippy.GeoImage(dtmpath)
-    print 'opened dtm'
     chm_img = gippy.GeoImage(chmpath)
-    print 'opened chm'
     chm_arr = chm_img[0].Read()
-    print 'read chm'
     dtm_arr = dtm_img[0].Read()
-    print 'read dtm'
 
     dtm_y_shape, dtm_x_shape = dtm_arr.shape
 
     # chmMax is the number of bands that will be necessary to populate the output grids
-    chmMax = numpy.int16(math.ceil(numpy.percentile(chm_arr,99.999))+1)
+    chmMax = numpy.int16(math.ceil(numpy.percentile(chm_arr[numpy.where(chm_arr<9999)],99.999))+1)
     print 'max canopy height is ', chmMax
 
     # get geo information from dtm image - unsure if this is needed
@@ -211,7 +207,6 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
     # loop through las file and populate multi-dimensional grid
     # create rhp and rhi, multi-dimensional output grids - rhp is density, rhi is intensity sum
-    print 'creating output arrays'
     rhp = numpy.zeros((chmMax,dtm_y_shape,dtm_x_shape))
     rhi = numpy.zeros((chmMax,dtm_y_shape,dtm_x_shape))
     print 'created them!'
