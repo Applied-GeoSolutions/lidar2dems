@@ -194,7 +194,9 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
     chm_img = gippy.GeoImage(chmpath)
     print 'opened chm'
     chm_arr = chm_img[0].Read()
+    print 'read chm'
     dtm_arr = dtm_img[0].Read()
+    print 'read dtm'
 
     dtm_y_shape, dtm_x_shape = dtm_arr.shape
 
