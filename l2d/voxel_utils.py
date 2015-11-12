@@ -241,6 +241,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 	        if (c == 2):
 
 	            band = 0
+		    z2 = z-zd
 
  	        else:
 
