@@ -255,7 +255,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 		    if 'intensity' in products:
 	                rhi[band][row][col] += i
 		    if 'chm' in products:
-			chm2[row][col] = numpy.max(z2,chm2[row][col])
+			chm2[row][col] = numpy.max([z2,chm2[row][col]])
 
 	    else:
 		pass
