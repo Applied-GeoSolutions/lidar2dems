@@ -188,6 +188,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
     # product output image names
     denout = bname + 'count.voxels.tif'
     intout = bname + 'intensity.voxels.tif'
+    chmout = bname + 'chm.voxels.tif'
 
     # read dtm and chm arrays
     dtm_img = gippy.GeoImage(dtmpath)
@@ -210,6 +211,7 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
     # create rhp and rhi, multi-dimensional output grids - rhp is density, rhi is intensity sum
     rhp = numpy.zeros((chmMax,dtm_y_shape,dtm_x_shape))
     rhi = numpy.zeros((chmMax,dtm_y_shape,dtm_x_shape))
+    chm2 = numpy.zeros((dtm_y_shape,dtm_x_shape))
     print 'created them!'
     bands,nrows,ncols = rhp.shape
 
@@ -242,12 +244,17 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 
  	        else:
 
-	            band = int(math.ceil(z-zd))
+		    z2 = z-zd
+	            band = int(math.ceil(z2))
 
 	        if (0 <= band < bands):
 
-	            rhp[band][row][col] += 1
-	            rhi[band][row][col] += i
+		    if 'count' in products:
+	                rhp[band][row][col] += 1
+		    if 'intensity' in products:
+	                rhi[band][row][col] += i
+		    if 'chm' in products:
+			chm2[row][col] = numpy.max(z2,chm2[row][col])
 
 	    else:
 		pass
@@ -268,6 +275,11 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
         int_img = gippy.GeoImage(intout,dtm_img,gippy.GDT_Int32,bands)
 	for b in range(0,bands):
             int_img[b].Write(rhi[b])
+
+    if 'chm' in products:
+	print 'Writing %s' %chmout
+	chm2_img = gippy.GeoImage(chmout,dtm_img,gippy.GDT_Float32)
+	chm2_img[0].Write(chm2)
     
     # print "Completed Voxel products for %s" %(bname)
 

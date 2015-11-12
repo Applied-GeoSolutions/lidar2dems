@@ -50,7 +50,7 @@ def main():
     parser.add_argument(
 	'demdir', help='Directory holding DEMs (including DSM and DTM for each feature)')
     parser.add_argument(
-	'--voxtypes', help='Type of return data in output voxels (e.g. counts, intensity)', nargs='*', default=['count','intensity'])
+	'--voxtypes', help='Type of return data in output voxels (e.g. counts, intensity); option to output new CHM with "chm"', nargs='*', 		default=['count','intensity'])
     parser.add_argument(
         '-s', '--site', default=None,
         help='Site shapefile name (use if used for DTM/DSM creation); if area of interest is smaller than whole scene, l2d_dems should be run 			again using voxel region of interest shapefile')
@@ -118,11 +118,11 @@ def main():
 	        import traceback
 	        print traceback.format_exc()
 
-    # combine all features into single file and align to site
-    # for product in products:
-    #     fnames = [piece[product] for piece in pieces]
-    #     if len(fnames) > 0:
-# 	    create_vrt(fnames, fouts[product], site=site)
+    # combine all features into single file and align to site for chm
+    if 'chm' in products:
+        fnames = [piece['chm'] for piece in pieces]
+        if len(fnames) > 0:
+ 	    create_vrt(fnames, fouts['chm'], site=site)
 
 
     print 'l2d_voxelize completed (%s) in %s' % (os.path.relpath(args.outdir), datetime.now() - start0)
