@@ -35,7 +35,7 @@ import gippy
 import glob
 from datetime import datetime
 from laspy import file
-from .utils import splittexts
+from .utils import splitexts
 
 
 # text file management
