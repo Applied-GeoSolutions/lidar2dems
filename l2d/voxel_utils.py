@@ -166,9 +166,10 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
 	print 'Already created %s in %s' % (voxtypes, os.path.relpath(outdir))
         exit(0)
 
-    # check if voxel files were created
+    # check if voxel files were created & align and clip to site
     exists=True
     for f in fouts.values():
+	clip_by_site(f,site)
         if not os.path.exists(f):
             exists = False
         if not exists:
@@ -237,25 +238,30 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
 	    if (0 <= col < dtm_x_shape) & (0 <= row < dtm_y_shape):
 
 		zd = get_dtm_value(dtm_arr, x, y, dtm_minx, dtm_maxy, 1.0, dtm_y_shape, dtm_x_shape)
+		z2 = z-zd
 
 	        if (c == 2):
 
 	            band = 0
-		    z2 = zd
-
- 	        else:
-
-		    z2 = z-zd
-	            band = int(math.ceil(z2))
-
-	        if (0 <= band < bands):
-
 		    if 'count' in products:
 	                rhp[band][row][col] += 1
 		    if 'intensity' in products:
 	                rhi[band][row][col] += i
 		    if 'chm' in products:
-			chm2[row][col] = numpy.max([z2,chm2[row][col]])
+		        band = int(math.ceil(z2))
+			if (0 <= band < bands):
+			    chm2[row][col] = numpy.max([z2,chm2[row][col]])
+
+ 	        else:
+
+	            band = int(math.ceil(z2))
+	            if (0 <= band < bands):
+		    	if 'count' in products:
+	                    rhp[band][row][col] += 1
+		    	if 'intensity' in products:
+	                    rhi[band][row][col] += i
+		    	if 'chm' in products:
+			    chm2[row][col] = numpy.max([z2,chm2[row][col]])
 
 	    else:
 		pass
@@ -317,4 +323,19 @@ def aggregate(dat, window):
     return agg
 
 
+def clip_by_site(img,site):
+
+    # align and clip
+    if site is not None:
+        from osgeo import gdal
+        # get resolution
+        ds = gdal.Open(fout, gdal.GA_ReadOnly)
+        gt = ds.GetGeoTransform()
+        ds = None
+        parts = splitexts(fout)
+        _fout = parts[0] + '_clip' + parts[1]
+        CookieCutter(gippy.GeoImages([fout]), site, _fout, gt[1], abs(gt[5]), True)
+        if os.path.exists(fout):
+            os.remove(fout)
+            os.rename(_fout, fout)
 
