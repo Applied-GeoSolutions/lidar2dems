@@ -35,6 +35,7 @@ import gippy
 import glob
 from datetime import datetime
 from laspy import file
+from .utils import splittexts
 
 
 # text file management
@@ -132,7 +133,7 @@ def create_voxels(filenames, voxtypes=['count','intensity'], demdir='.', site=No
 
     # products (vox)
     products = voxtypes
-    fouts = {o: bname + '%s.voxels.%s' % (o, ext) for o in products}
+    fouts = {o: bname + 'voxels.%s.%s' % (o, ext) for o in products}
     # print fouts
     prettyname = os.path.relpath(bname) + ' [%s]' % (' '.join(products))
 
@@ -187,9 +188,9 @@ def voxelize(lasfiles, products=['count','intensity'], site=None, dtmpath='', ch
     bname = os.path.join(os.path.abspath(outdir), '%s' % (bname))
 
     # product output image names
-    denout = bname + 'count.voxels.tif'
-    intout = bname + 'intensity.voxels.tif'
-    chmout = bname + 'chm.voxels.tif'
+    denout = bname + 'voxels.count.tif'
+    intout = bname + 'voxels.intensity.tif'
+    chmout = bname + 'voxels.chm.tif'
 
     # read dtm and chm arrays
     dtm_img = gippy.GeoImage(dtmpath)
