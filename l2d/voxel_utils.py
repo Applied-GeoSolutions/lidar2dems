@@ -323,7 +323,7 @@ def aggregate(dat, window):
     return agg
 
 
-def clip_by_site(img,site):
+def clip_by_site(fout,site):
 
     # align and clip
     if site is not None:
