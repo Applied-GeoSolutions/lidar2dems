@@ -35,6 +35,7 @@ import gippy
 import glob
 from datetime import datetime
 from laspy import file
+from gippy.algorithms import CookieCutter
 from .utils import splitexts
 
 
