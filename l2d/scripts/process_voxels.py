@@ -77,7 +77,16 @@ def main():
 
     # loop through voxel rasters
     # site = glob.glob('*.%s.*.tif' %(args.voxtype))
-    site = args.site
+    # open site vector
+    if args.site is not None:
+        try:
+            site = GeoVector(args.site)
+        except:
+            print 'Error opening %s' % args.site
+            exit(2)
+    else:
+        site = [None]
+
     pieces = []
     for feature in site:
         try:
