@@ -59,6 +59,7 @@ def main():
     pixelsize = int(args.pixelsize)
     if args.metric is None:
 	args.metric = 'rdm-%s_to_%s' %(startoff,cutoff)
+    voxdir = args.voxdir
 
     # make sure outdir exists
     args.outdir = os.path.abspath(args.outdir)
