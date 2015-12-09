@@ -94,10 +94,10 @@ def main():
         try:
 
 	    # extract naming convention
-	    bname = '' if site is None else site.Basename() + '_'
+	    bname = '' if feature is None else feature.Basename() + '_'
 	    ftr = bname.split('_')[0]
 	    bname = os.path.join(os.path.abspath(voxdir), '%s' % (bname))
-	    vox_name = bname + 'voxels.%s.tif' %(args.voxtype)
+	    vox_name = bname + 'voxels.%s.tif' %(args.voxtype[0])
 	    out = os.path.join(args.outdir, '%s_%s.voxel_metric.tif' % (ftr,product))
 
 	    #open image
