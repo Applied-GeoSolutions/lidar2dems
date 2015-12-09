@@ -67,7 +67,7 @@ def main():
     # the final filenames
     product = args.metric
     #fouts = os.path.join(args.outdir, '%s.voxel_metric.vrt' % (product))
-    fouts = {p: os.path.join(args.outdir, '%s.voxel_metric.vrt' % (p)) for p in products}
+    fouts = {p: os.path.join(args.outdir, '%s.voxel_metric.vrt' % (p)) for p in product}
 
     # run if any products are missing
     exists = all([os.path.exists(f) for f in fouts.values()])
