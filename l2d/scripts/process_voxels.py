@@ -77,6 +77,7 @@ def main():
 
     # loop through voxel rasters
     # site = glob.glob('*.%s.*.tif' %(args.voxtype))
+    site = args.site
     pieces = []
     for feature in site:
         try:
