@@ -30,7 +30,7 @@ def main():
     parser.add_argument(
 	'--voxtype', help='Type of return data to use for calculations', nargs='*', default=['count'])
     parser.add_argument(
-	'--metric', helep='Metric name user defined, used for naming output image', default=None)
+	'--metric', help='Metric name user defined, used for naming output image', default=None)
     parser.add_argument(
 	'--start', help='Low height of relative density region of interest', default=['1'])
     parser.add_argument(
