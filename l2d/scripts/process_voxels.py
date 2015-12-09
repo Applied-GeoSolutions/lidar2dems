@@ -19,6 +19,7 @@ import os, math, numpy, glob
 from scipy import signal, interpolate
 import scipy
 import gippy
+from gippy import GeoVector
 
 def main():
     dhf = argparse.ArgumentDefaultsHelpFormatter
