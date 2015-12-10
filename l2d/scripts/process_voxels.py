@@ -13,6 +13,7 @@ Creates raster of transformed relative density models for declared region of int
 
 from datetime import datetime
 import argparse
+from osgeo import gdal
 from l2d.utils import find_lasfiles, find_classified_lasfile, create_vrt, class_params
 from l2d.voxel_utils import aggregate, clip_by_site
 import os, math, numpy, glob
@@ -99,14 +100,19 @@ def main():
 	    bname = os.path.join(os.path.abspath(voxdir), '%s' % (bname))
 	    vox_name = bname + 'voxels.%s.tif' %(args.voxtype[0])
 	    out = os.path.join(args.outdir, '%s_%s.voxel_metric.tif' % (ftr,product))
+	    print out
 
 	    #open image
-	    vox_img = gippy.GeoImage(vox_name)
-	    vox_arr = vox_img.Read()
+	    # vox_img = gippy.GeoImage(vox_name)
+	    # vox_arr = vox_img.Read()
+	    vox_img = gdal.Open(vox_name)
+	    vox_arr = vox_img.ReadAsArray()
 	    nbands,nrows,ncols = vox_arr.shape
+	    print 'voxel dimensions: %s, %s, %s' %(nbands,nrows,ncols)
 
 	    #calculate relative density ratio of returns
 	    data = aggregate(vox_arr,pixelsize)
+	    print 'aggregated dimensions: %s, %s, %s' %data.shape
 	    i1 = numpy.sum(data[startoff+1:cutoff+1],axis=0,dtype=float)
 	    i2 = numpy.sum(data,axis=0,dtype=float)
 
