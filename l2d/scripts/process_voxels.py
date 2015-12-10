@@ -16,7 +16,7 @@ import argparse
 from osgeo import gdal
 from l2d.utils import find_lasfiles, find_classified_lasfile, create_vrt, class_params
 from l2d.voxel_utils import aggregate, clip_by_site
-import os, math, numpy, glob
+import os, math, numpy, glob, sys
 from scipy import signal, interpolate
 import scipy
 import gippy
@@ -109,10 +109,12 @@ def main():
 	    # vox_arr = vox_img.ReadAsArray()
 	    nbands,nrows,ncols = vox_arr.shape
 	    print 'voxel dimensions: %s, %s, %s' %(nbands,nrows,ncols)
+	    sys.stdout.flush()
 
 	    #calculate relative density ratio of returns
 	    data = aggregate(vox_arr,pixelsize)
-	    print 'aggregated dimensions: %s, %s, %s' %data.shape
+	    print 'aggregated dimensions: %s, %s, %s, Calculating...' %data.shape
+	    sys.stdout.flush()
 	    i1 = numpy.sum(data[startoff+1:cutoff+1],axis=0,dtype=float)
 	    i2 = numpy.sum(data,axis=0,dtype=float)
 
@@ -120,6 +122,8 @@ def main():
 	    ratio[numpy.where(i2>0)] = i1[numpy.where(i2>0)]/i2[numpy.where(i2>0)]
 	    transformed = numpy.sqrt(ratio)+0.001
 
+	    print 'writing image'
+	    sys.stdout.flush()
 	    #output ratio image
 	    imgout = gippy.GeoImage(out,vox_img,gippy.GDT_Float32,1)
 	    imgout[0].Write(transformed)
