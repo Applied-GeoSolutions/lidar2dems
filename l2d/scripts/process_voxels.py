@@ -103,10 +103,10 @@ def main():
 	    print out
 
 	    #open image
-	    # vox_img = gippy.GeoImage(vox_name)
-	    # vox_arr = vox_img.Read()
-	    vox_img = gdal.Open(vox_name)
-	    vox_arr = vox_img.ReadAsArray()
+	    vox_img = gippy.GeoImage(vox_name)
+	    vox_arr = vox_img.Read().squeeze()
+	    # vox_img = gdal.Open(vox_name)
+	    # vox_arr = vox_img.ReadAsArray()
 	    nbands,nrows,ncols = vox_arr.shape
 	    print 'voxel dimensions: %s, %s, %s' %(nbands,nrows,ncols)
 
