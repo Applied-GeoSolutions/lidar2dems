@@ -127,7 +127,11 @@ def main():
 	    #output ratio image
 	    imgout = gippy.GeoImage(out,vox_img,gippy.GDT_Float32,1)
 	    imgout[0].Write(transformed)
-	    clip_by_site(out,feature)
+
+	    fout = imgout.Filename()
+	    print 'clipping image to feature'
+	    
+	    clip_by_site(fout,feature)
 
 	    pieces.append(out)
 
@@ -137,8 +141,9 @@ def main():
 	        import traceback
 	        print traceback.format_exc()
 
+
     # combine all features into single file and align to site for chm
-    create_vrt(pieces, fouts, site=site)
+    create_vrt(pieces, fouts[product], site=site)
 
 
     print 'l2d_process_voxels completed (%s) in %s' % (os.path.relpath(args.outdir), datetime.now() - start0)
