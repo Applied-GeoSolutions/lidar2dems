@@ -133,7 +133,7 @@ def main():
 	    
 	    clip_by_site(fout,feature)
 
-	    pieces.append(out)
+	    pieces.append(fout)
 
         except Exception, e:
 	    print "Error creating metric: %s" % e
