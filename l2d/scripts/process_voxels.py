@@ -104,6 +104,9 @@ def main():
 
 	    #open image
 	    vox_img = gippy.GeoImage(vox_name)
+	    proj = vox_img.Projection()
+	    affine = vox_img.Affine()
+	    affine[1],affine[5] = pixelsize,-pixelsize
 	    vox_arr = vox_img.Read().squeeze()
 	    # vox_img = gdal.Open(vox_name)
 	    # vox_arr = vox_img.ReadAsArray()
@@ -111,8 +114,10 @@ def main():
 	    print 'voxel dimensions: %s, %s, %s' %(nbands,nrows,ncols)
 	    sys.stdout.flush()
 
-	    #calculate relative density ratio of returns
+	    # calculate relative density ratio of returns -- this section of code is the section that should be modified depending on needs
+	    # modifications if desired; also note, startoff and cutoff values may not be relevant if code is changed
 	    data = aggregate(vox_arr,pixelsize)
+	    nbands,nrows,ncols = data.shape
 	    print 'aggregated dimensions: %s, %s, %s, Calculating...' %data.shape
 	    sys.stdout.flush()
 	    i1 = numpy.sum(data[startoff+1:cutoff+1],axis=0,dtype=float)
@@ -125,15 +130,20 @@ def main():
 	    print 'writing image'
 	    sys.stdout.flush()
 	    #output ratio image
-	    imgout = gippy.GeoImage(out,vox_img,gippy.GDT_Float32,1)
-	    imgout[0].Write(transformed)
 
-	    fout = imgout.Filename()
+	    imgout = gippy.GeoImage(out,ncols,nrows,1,gippy.GDT_Float32)
+	    imgout.SetProjection(proj)
+	    imgout.SetAffine(affine)
+	    imgout[0].Write(transformed)
+	    imgout = None
+	    #
+	    # modification area ends
+
 	    print 'clipping image to feature'
 	    
-	    clip_by_site(fout,feature)
+	    clip_by_site(out,feature)
 
-	    pieces.append(fout)
+	    pieces.append(out)
 
         except Exception, e:
 	    print "Error creating metric: %s" % e
