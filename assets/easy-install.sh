@@ -3,11 +3,11 @@
 echo Installing dependencies
 sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
 sudo apt-get update
-sudo apt-get install -y git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal python-scipy libxslt1-dev python-pip python-wheel libgeos++-dev
+sudo apt-get install -y git cmake g++ libboost-all-dev libgdal1-dev gdal-bin libeigen3-dev libflann-dev libopenni-dev libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal python-scipy libxslt1-dev python-pip python-wheel libgeos++-dev libxslt-dev
 
 echo Installing LASzip
 git clone https://github.com/LASzip/LASzip.git
-cd LASzip; mkdir build; cd build; cmake -G "Unix Makefiles" ../
+cd LASzip; git checkout tags/2.0.2 ; mkdir build; cd build; cmake -G "Unix Makefiles" ../
 make; sudo make install; cd ../..
 
 echo Installing Points2Grid
@@ -67,7 +67,7 @@ cmake -G "Unix Makefiles" ../ -DBUILD_PLUGIN_PCL=ON -DBUILD_PLUGIN_P2G=ON -DBUIL
 make; sudo make install; cd ../..
 
 # install lidar2dems
-sudo pip install gippy
+sudo pip install https://github.com/Applied-GeoSolutions/gippy/archive/v0.3.9.tar.gz
 git clone https://github.com/Applied-GeoSolutions/lidar2dems
 cd lidar2dems
 sudo ./setup.py install; cd ..
