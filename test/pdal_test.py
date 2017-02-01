@@ -28,8 +28,8 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-# last modification
-# DATE: <2017-02-01 16:45:25 icooke on north>
+# last modified 
+# DATE: <2017-02-01 16:53:11 icooke on north>
 
 import os
 import shutil
