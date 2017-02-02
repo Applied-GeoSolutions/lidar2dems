@@ -28,6 +28,9 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
+# last modified 
+# DATE: <2017-02-01 17:23:30 icooke on north>
+
 import os
 import shutil
 import unittest
@@ -63,7 +66,7 @@ class PDALTest(unittest.TestCase):
             fout = get_classification_filename(f, self.testdir)
             slope, cellsize = class_params(f)
             classify(fnames, fout, site=f, slope=slope, cellsize=cellsize)
-            fouts = find_classified_lasfile(self.testdir, site=f)
+            fouts = find_classified_lasfile(self.testdir, site=f, params=(slope, cellsize))
             self.assertTrue(len(fouts) == 1)
 
     def test1_create_density(self):
@@ -84,7 +87,7 @@ class PDALTest(unittest.TestCase):
         """ Create DTM """
         pieces = []
         for f in self.features:
-            lasfiles = find_classified_lasfile(self.testdir, site=f)
+            lasfiles = find_classified_lasfile(self.testdir, site=f, params=class_params(f))
             pouts = create_dems(lasfiles, 'dtm', site=f, gapfill=True,
                                 radius=['0.56', '1.41', '2.50'], outdir=self.testdir)
             [self.assertTrue(os.path.exists(fout) for fout in pouts.items())]
@@ -101,7 +104,7 @@ class PDALTest(unittest.TestCase):
         """ Create DSM """
         pieces = []
         for f in self.features:
-            lasfiles = find_classified_lasfile(self.testdir, site=f)
+            lasfiles = find_classified_lasfile(self.testdir, site=f, params=class_params(f))
             pouts = create_dems(lasfiles, 'dsm', site=f, gapfill=True, outdir=self.testdir)
             [self.assertTrue(os.path.exists(fout) for fout in pouts.items())]
             pieces.append(pouts)
