@@ -28,7 +28,7 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-# last modified 
+# last modified
 # DATE: <2017-02-01 17:23:30 icooke on north>
 
 import os
