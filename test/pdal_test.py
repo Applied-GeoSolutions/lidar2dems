@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 ################################################################################
 #   lidar2dems - utilties for creating DEMs from LiDAR data
 #
