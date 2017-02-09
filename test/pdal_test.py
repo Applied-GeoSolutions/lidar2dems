@@ -28,7 +28,7 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-# last modified
+# last modified (only for CI triggering)
 # Time-stamp: <2017-02-09 00:01:02 icooke on north>
 
 import os
