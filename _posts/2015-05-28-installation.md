@@ -2,11 +2,11 @@
 layout: page
 title: "Installation"
 category: doc
-date: 2015-05-28 21:00:45
+date: 2017-04-27 08:00:48
 order: 0
 ---
 
-The installation of lidar2dems itself is straightforward, as it only consists of a Python library and some scripts. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04, but should work for most debian-based linux systems.
+The installation of lidar2dems itself is straightforward, as it only consists of a Python library and some scripts. However, there are several required dependencies that need a more manual process. These installation notes are for Ubuntu 14.04 or 16.04, but should work for most Debian-based linux systems.
 
 ## Easy Install
 For Ubuntu machines, save the [easy-install.sh](/lidar2dems/assets/easy-install.sh) script and run it in a temporary working directory (it can be deleted afterward).  If the easy install process is sucessful, you can disregard the rest of these installation notes.
@@ -16,16 +16,20 @@ The easy-install script installs all the necessary dependencies that are availab
 ## Manual Install
 
 ### Dependencies from packages
-Some dependencies are available via repositories, or the Ubuntu GIS repository.
-Some of the dependencies can be easily installed via the Ubuntu packaing tool from the main repositories or the Ubuntu GIS repository
+Many of the dependencies can be easily installed via the Ubuntu packaing tool from the main repositories.  *Note*: **If installing on Ubuntu 14.04 you also need the ~swig~ package in addtion to ~swig2.0~ due to a packaging issue.**
 
 ~~~~
-$ sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-$ sudo apt-get install git cmake g++ libboost-all-dev libgdal1-dev libeigen3-dev libflann-dev libopenni-dev libvtk5.8-qt4 libqhull-dev qt-sdk libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java python-numpy libgeotiff-dev python-setuptools swig swig2.0 python-gdal python-scipy python-pip python-wheel libgeos++-dev gdal-bin libxslt-dev
+$ sudo apt-get install swig2.0 python g++ libboost-all-dev libgdal-dev \
+                       libgdal-dev gdal-bin python-pip python-numpy \
+                       python-scipy python-gdal cmake++ libeigen3-dev \
+                       libflann-dev libopenni-dev libqhull-dev qt-sdk \
+                       libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java \
+                       libgeotiff-dev python-setuptools libxslt1-dev \
+                       python-wheel libgeos++-dev libxslt-dev
 ~~~~
 
 ### Dependencies from source
-These are dependencies that must be built from source code, and are available on GitHub., while others are not available in such form and must be compiled from the source code.
+These are dependencies that must be built from source code, and are available on GitHub.  
 
 **Running CMake**: Several of the programs below use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory. Follow the steps below for any source that utilizes cmake for building.
 
@@ -45,6 +49,8 @@ LASzip is used by many other LiDAR software packages to support compressed LAS f
 1. Clone repository
 
         $ git clone https://github.com/LASzip/LASzip.git
+        $ cd LASzip
+        $ git checkout tags/2.0.2
 
 2. Run CMake steps as above
 
@@ -58,7 +64,7 @@ Points2Grid is used by PDAL to create rasters from point clouds using a local gr
 2. Run CMake steps as above
 
 #### PCL:
-Install PCL with this [install-pcl.sh](/lidar2dems/assets/install-pcl.sh) script
+Install PCL with this [install-pcl.sh](/lidar2dems/assets/install-pcl.sh) script.
 
 #### PDAL
 PDAL is library for conversion and filtering of LiDAR data. It is under very active development and has features particularly well suited to batch processing.  It can also incorporate PCL for doing advanced algorithms on point clouds.
@@ -82,7 +88,7 @@ lidar2dems is a pure python library, and is easily installed with the included s
 
 1. Install gippy
 
-    $ sudo pip install gippy
+    $ pip install https://github.com/Applied-GeoSolutions/gippy/archive/v0.3.9.tar.gz
 
 2. Clone repository
 
