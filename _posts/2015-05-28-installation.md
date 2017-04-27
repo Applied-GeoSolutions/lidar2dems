@@ -16,9 +16,9 @@ The easy-install script installs all the necessary dependencies that are availab
 ## Manual Install
 
 ### Dependencies from packages
-Many of the dependencies can be easily installed via the Ubuntu packaing tool from the main repositories.  *Note*: **If installing on Ubuntu 14.04 you also need the ~swig~ package in addtion to ~swig2.0~ due to a packaging issue.**
+Many of the dependencies can be easily installed via the Ubuntu packaing tool from the main repositories.  **Note**: *If installing on Ubuntu 14.04 you also need the `swig` package in addtion to `swig2.0` due to a packaging issue.*
 
-~~~~
+```
 $ sudo apt-get install swig2.0 python g++ libboost-all-dev libgdal-dev \
                        libgdal-dev gdal-bin python-pip python-numpy \
                        python-scipy python-gdal cmake++ libeigen3-dev \
@@ -26,21 +26,21 @@ $ sudo apt-get install swig2.0 python g++ libboost-all-dev libgdal-dev \
                        libvtk5-qt4-dev libpcap-dev python-vtk libvtk-java \
                        libgeotiff-dev python-setuptools libxslt1-dev \
                        python-wheel libgeos++-dev libxslt-dev
-~~~~
+```
 
 ### Dependencies from source
 These are dependencies that must be built from source code, and are available on GitHub.  
 
 **Running CMake**: Several of the programs below use cmake which works in a standard fashion across platforms. The best approach is to create an out-of-source build, meaning that a build directory is created somewhere other than the source directory. Follow the steps below for any source that utilizes cmake for building.
 
-~~~
+```
 $ cd "projdir"      # "projdir" is the project directory
 $ mkdir build
 $ cd build
 $ cmake -G "Unix Makefiles" ../
 $ make
 $ sudo make install
-~~~
+```
 
 
 #### LASzip
@@ -88,20 +88,20 @@ lidar2dems is a pure python library, and is easily installed with the included s
 
 1. Install gippy
 
-    $ pip install https://github.com/Applied-GeoSolutions/gippy/archive/v0.3.9.tar.gz
+       $ pip install https://github.com/Applied-GeoSolutions/gippy/archive/v0.3.9.tar.gz
 
 2. Clone repository
 
-	$ git clone https://github.com/Applied-GeoSolutions/lidar2dems.git
+       $ git clone https://github.com/Applied-GeoSolutions/lidar2dems.git
 
 3. Run setup
 	
-	$ cd lidar2dems; sudo ./setup.py install
+       $ cd lidar2dems; sudo ./setup.py install
 
 ### Run tests
 Some automated tests can be run to ensure the installation has succeeded.   Run the tests from the lidar2dems repository directory that was cloned from github. If you see the output below, lidar2dems is working correctly.
 
-~~~
+```
 $ nosetests test -v
 
 Test classification ... ok
@@ -116,4 +116,4 @@ Test finding las files ... ok
 Ran 7 tests in 2.513s
 
 OK
-~~~
+```
