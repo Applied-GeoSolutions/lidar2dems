@@ -93,10 +93,13 @@ lidar2dems is a pure python library, and is easily installed with the included s
 2. Clone repository
 
        $ git clone https://github.com/Applied-GeoSolutions/lidar2dems.git
+       $ # as of this writing v1.1.1 is the current release
+       $ cd lidar2dems
+       $ git checkout tags/v1.1.1
 
 3. Run setup
 	
-       $ cd lidar2dems; sudo ./setup.py install
+       $ ./setup.py install
 
 ### Run tests
 Some automated tests can be run to ensure the installation has succeeded.   Run the tests from the lidar2dems repository directory that was cloned from github. If you see the output below, lidar2dems is working correctly.

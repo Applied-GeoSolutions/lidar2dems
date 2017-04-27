@@ -1,6 +1,6 @@
 #!/bin/bash
 
-L2D_CHECKOUT=master
+L2D_CHECKOUT=tags/v1.1.1
 LASZIP_CHECKOUT=tags/2.0.2
 PCL_CHECKOUT=tags/pcl-1.7.2
 GIPPY_VERSION=0.3.9
