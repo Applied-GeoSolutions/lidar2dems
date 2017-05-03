@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 L2D_CHECKOUT=tags/v1.1.1
 LASZIP_CHECKOUT=tags/2.0.2
 PCL_CHECKOUT=tags/pcl-1.7.2
@@ -46,7 +48,7 @@ github <https://github.com/Applied-GeoSolutions/lidar2dems/issues/new?title=supp
 
 function install_laszip() {
     echo checking for laszip
-    LASZIP_CONFIG=$(which laszip-config)
+    LASZIP_CONFIG=$(which laszip-config || echo "")
     if [ ! "${LASZIP_CONFIG}" ] ;
     then
         echo Installing LASzip
@@ -66,7 +68,7 @@ function install_laszip() {
 
 function install_points2grid() {
     echo checking for points2grid
-    P2G=$(which points2grid)
+    P2G=$(which points2grid || echo "")
     if [ ! "${P2G}" ] ;
     then
         echo Installing Points2Grid
@@ -85,7 +87,7 @@ function install_points2grid() {
 
 function install_pcl() {
     echo checking for PCL
-    PCL=$(which pcl_ply2ply)
+    PCL=$(which pcl_ply2ply || echo "")
     if [ ! "${PCL}" ] ;
     then
         echo Installing PCL
@@ -135,7 +137,7 @@ function install_pcl() {
 
 function install_pdal() {
     echo checking for PDAL
-    PDAL_CONFIG=$(which pdal-config)
+    PDAL_CONFIG=$(which pdal-config || echo "")
     if [ ! "${PDAL_CONFIG}" ] ;
     then
         # install PDAL
@@ -180,7 +182,6 @@ function install_lidar2dems() {
     git clone https://github.com/Applied-GeoSolutions/lidar2dems
     cd lidar2dems
     git checkout ${L2D_CHECKOUT}
-    git pull
     ./setup.py install
     cd ..
 }
