@@ -33,7 +33,7 @@ github <https://github.com/Applied-GeoSolutions/lidar2dems/issues/new?title=supp
     fi
 
     GIPPY_SYS_DEPS="${SWIG_DEPS}
-                    python g++ libboost-all-dev libgdal-dev libgdal-dev
+                    python g++ libboost-all-dev libgdal-dev
                     gdal-bin python-pip python-numpy python-scipy python-gdal"
     L2D_STACK_DEPS="${GIPPY_SYS_DEPS}
                     cmake++ libeigen3-dev libflann-dev libopenni-dev libqhull-dev
