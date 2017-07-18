@@ -129,4 +129,3 @@ class PDALTest(unittest.TestCase):
 
         fout = create_vrt(fouts, os.path.join(self.testdir, 'chm.vrt'), site=self.features)
         self.assertTrue(os.path.exists(fout))
- 
